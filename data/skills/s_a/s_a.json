@@ -1,0 +1,18 @@
+{
+  "id": "s_a",
+  "title": "A",
+  "badge": "A",
+  "prompt": "do A",
+  "description": "do A",
+  "host_id": "cluster_0",
+  "remote_dir": "/tmp/mix_api_r7rkwr3b/skills/s_a",
+  "collect_root": "/mnt/data2/gzy/workspace/wb-vla-data-station-src/data/collections/s_a",
+  "current_session": "",
+  "current_local_dir": "",
+  "current_collection_id": "",
+  "folder": "/mnt/data2/gzy/workspace/wb-vla-data-station-src/data/skills/s_a",
+  "created_at": "2026-09-14T10:54:36",
+  "updated_at": "2026-09-14T10:54:36",
+  "datasets": [],
+  "source": "studio"
+}

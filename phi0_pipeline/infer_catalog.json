@@ -1,0 +1,105 @@
+{
+  "version": 3,
+  "source": "cluster_0:/mnt/data2/wpy/workspace/Phi_0_wpy/tools/eval",
+  "phi0_root_remote": "/mnt/data2/wpy/workspace/Phi_0_wpy",
+  "phi0_root_local_candidates": [
+    "/home/neotix/noetix/experiment/Phi_0_wpy",
+    "/mnt/data2/wpy/workspace/Phi_0_wpy",
+    "/home/neotix/noetix/humanoid_data_studio/phi0_pipeline"
+  ],
+  "script": "tools/eval/studio_cl_orchestrator.sh",
+  "script_auto": "tools/eval/run_830_walk_student_cl_mujoco_viz.sh",
+  "engine": "tools/eval/run_sonic_latent_sim_eval.sh",
+  "publisher": "tools/deploy/phi0_chunk_student_sonic_closed_loop_zmq.py",
+  "notes": [
+    "Interactive web flow: 一键启动 → Deploy Terminal y → ] → Enter",
+    "handcmd-trained skills (skill1 / mix / pure2) should use hand_obs=commanded",
+    "skill2 = 830demo skill_2_pico_pick_and_place_pure2（忽略 skill_2_pico_pick_the_toy）",
+    "2026-09-09 最新 ckpt: 830mix_skill1234_demo5_...resume16k_20260909_011924/phi0_student_last.pt",
+    "备选: 830mix_skill1234_...20260909_002731；830mix_pico_pick_toy_pure2（20260907）；830mix_skill123_demo5（20260907）"
+  ],
+  "defaults": {
+    "horizon": 32,
+    "use_rtc": true,
+    "rtc_inference_delay": 6,
+    "rtc_execution_horizon": 26,
+    "deploy_policy": "sonic_v1_1",
+    "hand_mode": "dex3",
+    "hand_obs": "commanded",
+    "vlm_source": "frame_cache",
+    "cuda_devices": "4",
+    "phi0_py": "/home/neotix/miniforge3/envs/Phi-0-wpy/bin/python",
+    "control_fps": 50,
+    "video_loop_pause_s": 1,
+    "interactive": true
+  },
+  "skills": [
+    {
+      "id": "skill1_walk",
+      "title": "走向黑箱",
+      "badge": "WALK",
+      "prompt": "机器人朝黑箱子走过去。",
+      "student_ckpt": "/mnt/data3/wpy/830mix_skill1234_demo5_handcmd_lag1_vlm_cache_h32_b32_ddp8_e2_pv0.95_resume16k_20260909_011924/phi0_student_last.pt",
+      "ref_root": "/mnt/data2/wpy/workspace/local_nvme/datasets/830/830demo_skill1_walk_unified",
+      "local_ref_root": "",
+      "ep": 0,
+      "hand_obs": "commanded",
+      "script": "tools/eval/studio_cl_orchestrator.sh",
+      "notes": "独立 walk ckpt 已缺失；暂绑 skill1234 resume16k"
+    },
+    {
+      "id": "skill2_pico",
+      "title": "Skill2 · Pico pick and place (pure2)",
+      "badge": "SKILL2",
+      "prompt": "走到桌面，抓取篮中玩具并搬运篮子到另一区域。",
+      "student_ckpt": "/mnt/data3/wpy/830mix_pico_pick_toy_pure2_handcmd_lag1_vlm_cache_h32_b32_ddp8_e2_20260907_225727/phi0_student_last.pt",
+      "ref_root": "/mnt/data2/wpy/workspace/local_nvme/datasets/830/830demo_skill2_pico_pick_and_place_pure2_unified",
+      "local_ref_root": "",
+      "ep": 0,
+      "hand_obs": "commanded",
+      "script": "tools/eval/studio_cl_orchestrator.sh",
+      "train_out_dir": "/mnt/data3/wpy/830mix_pico_pick_toy_pure2_handcmd_lag1_vlm_cache_h32_b32_ddp8_e2_20260907_225727",
+      "notes": "skill2 = pure2；忽略 skill_2_pico_pick_the_toy"
+    },
+    {
+      "id": "skill3_place_basket",
+      "title": "Skill3 · Place the basket",
+      "badge": "SKILL3",
+      "prompt": "把篮子放到指定位置。",
+      "student_ckpt": "/mnt/data3/wpy/830mix_skill1234_demo5_handcmd_lag1_vlm_cache_h32_b32_ddp8_e2_pv0.95_resume16k_20260909_011924/phi0_student_last.pt",
+      "ref_root": "/mnt/data2/wpy/workspace/local_nvme/datasets/830/830demo_skill3_pico_place_basket_unified",
+      "local_ref_root": "",
+      "ep": 0,
+      "hand_obs": "commanded",
+      "script": "tools/eval/studio_cl_orchestrator.sh",
+      "notes": "暂无独立 skill3 ckpt；绑 skill1234 resume16k"
+    },
+    {
+      "id": "skill4_put_flower",
+      "title": "Skill4 · Put the flower",
+      "badge": "SKILL4",
+      "prompt": "把花插到花瓶里。",
+      "student_ckpt": "/mnt/data3/wpy/830mix_skill1234_demo5_handcmd_lag1_vlm_cache_h32_b32_ddp8_e2_pv0.95_resume16k_20260909_011924/phi0_student_last.pt",
+      "ref_root": "/mnt/data2/wpy/workspace/local_nvme/datasets/830/830mix_skill1234_demo5_unified",
+      "local_ref_root": "",
+      "ep": 0,
+      "hand_obs": "commanded",
+      "script": "tools/eval/studio_cl_orchestrator.sh",
+      "notes": "无独立 skill4 unified；REF/ckpt 用 skill1234 mix"
+    },
+    {
+      "id": "830mix_skill1234_demo5",
+      "title": "混训 s1+s2+s3+s4+demo5",
+      "badge": "MIX",
+      "prompt": "",
+      "student_ckpt": "/mnt/data3/wpy/830mix_skill1234_demo5_handcmd_lag1_vlm_cache_h32_b32_ddp8_e2_pv0.95_resume16k_20260909_011924/phi0_student_last.pt",
+      "ref_root": "/mnt/data2/wpy/workspace/local_nvme/datasets/830/830mix_skill1234_demo5_unified",
+      "local_ref_root": "",
+      "ep": 0,
+      "hand_obs": "commanded",
+      "script": "tools/eval/studio_cl_orchestrator.sh",
+      "train_out_dir": "/mnt/data3/wpy/830mix_skill1234_demo5_handcmd_lag1_vlm_cache_h32_b32_ddp8_e2_pv0.95_resume16k_20260909_011924",
+      "notes": "最新 resume16k @20260909_011924"
+    }
+  ]
+}

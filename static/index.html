@@ -1,0 +1,796 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>WB-VLA</title>
+  <link rel="stylesheet" href="/static/style.css?v=apple54">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar" id="topbar">
+      <div class="brand">
+        <div class="brand-mark">W</div>
+        <div class="brand-text"><strong>WB-VLA</strong><span>Data-station</span></div>
+      </div>
+      <nav class="pipeline-nav" id="pipelineNav" aria-label="流水线">
+        <button class="nav nav-skills" data-page="skills" type="button"><span>SK</span><div>技能卡</div></button>
+        <div class="nav-segment" data-seg="data">
+          <div class="nav-divider" aria-hidden="true"><span>数据</span></div>
+          <div class="nav-cluster">
+            <button class="nav active" data-page="collect" type="button"><span>01</span><div>采集</div></button>
+            <button class="nav" data-page="replay" type="button"><span>02</span><div>筛选</div></button>
+          </div>
+        </div>
+        <div class="nav-segment" data-seg="loop">
+          <div class="nav-divider" aria-hidden="true"><span>闭环</span></div>
+          <div class="nav-cluster">
+            <button class="nav" data-page="train" type="button"><span>03</span><div>训练</div></button>
+            <button class="nav" data-page="infer" type="button"><span>04</span><div>推理</div></button>
+          </div>
+        </div>
+      </nav>
+      <div class="topbar-right">
+        <span class="connection-badge online quiet" id="sharedConnection">在线</span>
+      </div>
+    </header>
+
+    <main>
+      <header class="page-hero">
+        <div>
+          <p class="eyebrow" id="eyebrow">01 · 采集打标</p>
+          <h1 id="pageTitle">采集</h1>
+        </div>
+      </header>
+
+      <section class="page" id="page-skills">
+        <div class="skills-mgmt-grid">
+          <article class="panel">
+            <div class="panel-head"><div><h2>新建技能卡</h2><p class="hint quiet">全链路 01→04 共用 · 仅写本机技能目录</p></div></div>
+            <div class="form-grid">
+              <label>技能名称<input id="mgmtSkillTitle" placeholder="例如：走向黑箱"></label>
+              <label>技能 ID<input id="mgmtSkillId" placeholder="skill_walk_blackbox（可选）"></label>
+              <label>Badge<input id="mgmtSkillBadge" placeholder="WALK"></label>
+              <label class="wide">说明 / Prompt<input id="mgmtSkillPrompt" placeholder="任务语言描述"></label>
+            </div>
+            <div class="panel-actions">
+              <button class="primary green" type="button" onclick="createManagedSkill()">创建技能卡</button>
+            </div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-head">
+              <div><h2>技能列表</h2><p class="hint quiet" id="mgmtSkillCount">0 张</p></div>
+              <button class="text-btn" type="button" onclick="refreshManagedSkills()">刷新</button>
+            </div>
+            <div id="mgmtSkillGrid" class="skill-pick-grid empty-state">加载技能…</div>
+          </article>
+        </div>
+
+        <article class="panel" id="mgmtDatasetPanel">
+          <div class="panel-head">
+            <div>
+              <h2>数据集</h2>
+              <p class="hint quiet" id="mgmtDatasetHint">点选上方技能卡后，在此增删挂载路径（不删远端文件）</p>
+            </div>
+            <button class="ghost" type="button" id="mgmtDeleteSkillBtn" onclick="deleteManagedSkill()" disabled>删除技能卡</button>
+          </div>
+          <div id="mgmtDatasetList" class="mgmt-dataset-list empty-state">尚未选择技能</div>
+          <div class="form-grid" style="margin-top:14px">
+            <label class="wide">数据集路径（cluster_0 / 本机绝对路径）<input id="mgmtDatasetPath" placeholder="/mnt/data2/wpy/workspace/830demo/.../session（LeRobot V2.1）"></label>
+            <label class="wide">显示名称<input id="mgmtDatasetLabel" placeholder="可选，默认取目录名"></label>
+          </div>
+          <div class="panel-actions">
+            <button class="primary" type="button" id="mgmtAddDatasetBtn" onclick="addManagedDataset()" disabled>添加到当前技能</button>
+          </div>
+        </article>
+      </section>
+
+      <section class="page active" id="page-collect">
+        <div class="stats-strip">
+          <div><span>技能</span><b id="mTasks">0</b></div>
+          <div><span>采集中</span><b id="mRunning">0</b></div>
+          <div><span>已扫描</span><b id="mBytes">0 B</b></div>
+          <div class="accent"><span>待打标</span><b id="mReview">0</b></div>
+        </div>
+
+        <article class="panel skill-lead">
+          <div class="panel-head">
+            <div>
+              <h2>技能卡</h2>
+              <p class="hint quiet">顶部先选技能 · 可新建 · 采集与打标共用</p>
+            </div>
+            <div class="panel-actions">
+              <button class="ghost" type="button" onclick="toggleCollectSkillCreate()">新建技能卡</button>
+              <button class="text-btn" type="button" onclick="refreshCollectSkills()">刷新</button>
+            </div>
+          </div>
+          <div id="collectSkillGrid" class="skill-pick-grid empty-state">加载技能…</div>
+          <div id="collectSkillCreate" class="collect-skill-create" hidden>
+            <div class="form-grid">
+              <label>技能名称<input id="collectNewTitle" placeholder="例如：走向黑箱"></label>
+              <label>技能 ID<input id="collectNewId" placeholder="skill_walk_blackbox（可选）"></label>
+              <label>Badge<input id="collectNewBadge" placeholder="WALK"></label>
+              <label class="wide">说明 / Prompt<input id="collectNewPrompt" placeholder="任务语言描述"></label>
+              <label class="wide">本机采集根目录<input id="collectNewRoot" placeholder="留空= data/collections/&lt;skill_id&gt;"></label>
+            </div>
+            <div class="panel-actions">
+              <button class="ghost" type="button" onclick="toggleCollectSkillCreate(false)">取消</button>
+              <button class="primary green" type="button" onclick="createCollectSkill()">创建并选中</button>
+            </div>
+          </div>
+          <p class="hint quiet" id="collectSkillHint">尚未选择技能卡</p>
+          <details class="quiet-details">
+            <summary>数据根目录</summary>
+            <div class="form-grid">
+              <label>默认 Host<select id="taskHost"></select></label>
+              <label class="wide">本机根目录<input id="taskRemote" value=""></label>
+            </div>
+          </details>
+        </article>
+
+        <article class="panel sessions collect-session-board" id="collectSessionBoard">
+          <div class="panel-head">
+            <div>
+              <h2>当前技能 · 数据集状态</h2>
+              <p class="hint quiet">选中技能卡后列出本机采集会话与已挂载数据 · 待上传可直接点「上传」，不必新开采集</p>
+            </div>
+            <div class="panel-actions">
+              <button class="primary green" id="reviewUploadBtnTop" type="button" onclick="uploadActiveReview()" hidden>上传到 cluster_0</button>
+              <button class="text-btn" type="button" onclick="loadState()">刷新</button>
+            </div>
+          </div>
+          <div id="collectionList" class="empty-state">请先在上方选择技能卡</div>
+        </article>
+
+        <article class="panel focus-panel">
+          <div class="panel-head">
+            <div>
+              <h2>开始离线采集</h2>
+              <p class="hint quiet" id="collectPathHint">选技能后自动在 collect_root 下建时间戳目录</p>
+            </div>
+            <span class="live-dot">先本地</span>
+          </div>
+          <div class="form-grid">
+            <input type="hidden" id="collectionTask" value="">
+            <label class="wide">本机采集根目录（技能卡）
+              <div class="path-row">
+                <input id="collectRootInput" placeholder="data/collections/&lt;skill_id&gt;">
+                <button type="button" class="ghost" onclick="saveCollectRoot()">保存</button>
+              </div>
+            </label>
+            <label class="wide">本次 Session 目录（可空=自动时间戳）<input id="localDir" placeholder="留空则自动：{collect_root}/YYYY-MM-DD-HH-MM-SS"></label>
+          </div>
+          <div class="panel-actions">
+            <button class="primary green" onclick="startCollection()">开始离线数采</button>
+            <button class="ghost" id="collectStopBtn" onclick="stopActiveCollection()" disabled>结束采集</button>
+          </div>
+          <pre id="collectLaunchEnv" class="jobs-board-log" hidden>启动后显示 STUDIO_SESSION_DIR（供外挂数采脚本）</pre>
+
+          <div class="collect-stack-status" id="collectStackStatus">
+            <span data-k="gmr" class="lamp idle"><i></i>GMR</span>
+            <span data-k="deploy" class="lamp idle"><i></i>Deploy</span>
+            <span data-k="exporter" class="lamp idle"><i></i>Exporter</span>
+            <span data-k="camera" class="lamp skip"><i></i>Camera（机器人侧）</span>
+          </div>
+          <p class="hint quiet">一键后在 tmux 分窗启动 GMR / Deploy / Exporter；相机请在机器人上自行启动。指示灯：蓝=运行中，红=报错退出。</p>
+
+          <div class="collect-camera-grid" id="collectCameraGrid">
+            <div class="collect-cam-tile">
+              <div class="collect-cam-label" id="collectCamLabel0">相机 1</div>
+              <img id="collectCam0" alt="camera 0" decoding="async">
+              <div class="collect-cam-empty" id="collectCamEmpty0">等待相机…</div>
+            </div>
+            <div class="collect-cam-tile">
+              <div class="collect-cam-label" id="collectCamLabel1">相机 2</div>
+              <img id="collectCam1" alt="camera 1" decoding="async">
+              <div class="collect-cam-empty" id="collectCamEmpty1">等待相机…</div>
+            </div>
+          </div>
+
+          <div class="collect-record-bar">
+            <button class="primary green" id="collectRecStart" onclick="collectRecordCmd('t')" disabled>开始录制 (t)</button>
+            <button class="primary" id="collectRecSave" onclick="collectRecordCmd('y')" disabled>保存 (y)</button>
+            <button class="ghost danger-ghost" id="collectRecDiscard" onclick="collectRecordCmd('x')" disabled>丢弃 (x)</button>
+          </div>
+          <p class="hint quiet">只有点「开始录制」才会写 Episode（已禁用 Pico 握把+A 自动开关录制）</p>
+
+          <div class="infer-deploy-tty collect-deploy-tty">
+            <div class="infer-deploy-tty-head">
+              <span>Deploy Terminal</span>
+              <small id="collectDeployHint">tmux Deploy：y → 等 Init Done → ] → Enter</small>
+              <span class="status-pill" id="collectDeployPhase">等待采集</span>
+            </div>
+            <div class="infer-phase-bar" id="collectPhaseBar">
+              <span data-p="waiting_deploy">等待 y</span>
+              <span data-p="deploy_starting">Deploy 启动</span>
+              <span data-p="init_done">Init Done</span>
+              <span data-p="standing">站立</span>
+              <span data-p="streaming">流式</span>
+            </div>
+            <div class="infer-actions collect-deploy-actions">
+              <button class="ghost" id="collectDeployY" onclick="collectDeployCmd('y')" disabled>y Deploy</button>
+              <button class="ghost" id="collectDeployStand" onclick="collectDeployCmd('stand')" disabled>] 站立</button>
+              <button class="ghost" id="collectDeployEnter" onclick="collectDeployCmd('enter')" disabled>Enter</button>
+              <button class="ghost danger-ghost" onclick="collectKillDeploy()">停 Deploy</button>
+            </div>
+            <pre id="collectDeployLog" class="infer-deploy-log">等待开始离线数采…</pre>
+            <div class="infer-tty-keys">
+              <button type="button" class="chip" onclick="collectDeployCmd('y')">y</button>
+              <button type="button" class="chip" onclick="collectDeployCmd(']')">]</button>
+              <button type="button" class="chip" onclick="collectDeployCmd('enter')">Enter</button>
+            </div>
+            <div class="infer-tty-row">
+              <span class="infer-tty-prompt">›</span>
+              <input id="collectTtyInput" class="infer-tty-input" placeholder="输入 y / ] / enter 后回车" autocomplete="off" spellcheck="false"
+                onkeydown="if(event.key==='Enter'){event.preventDefault();submitCollectTty()}">
+              <button type="button" class="ghost" onclick="submitCollectTty()">发送</button>
+            </div>
+          </div>
+
+          <details class="quiet-details" id="collectConfigDetails">
+            <summary>采集配置（路径 / 网卡 / ZMQ）</summary>
+            <div class="form-grid">
+              <label class="wide">GMR 根目录<input id="cfgGmrRoot"></label>
+              <label class="wide">GR00T 根目录<input id="cfgGrootRoot"></label>
+              <label class="wide">Deploy 根目录<input id="cfgDeployRoot"></label>
+              <label class="wide">相机仓库<input id="cfgCameraRepo"></label>
+              <label>相机 Host<input id="cfgCameraHost"></label>
+              <label>相机 Port<input id="cfgCameraPort" type="number"></label>
+              <label>Hand ZMQ Host<input id="cfgHandHost"></label>
+              <label>Hand Port<input id="cfgHandPort" type="number"></label>
+              <label>G1 网卡<input id="cfgG1Iface"></label>
+              <label>Task Prompt<input id="cfgTaskPrompt"></label>
+              <label class="wide">XRT_PYBIND<input id="cfgXrt"></label>
+            </div>
+            <div class="panel-actions">
+              <button class="ghost" type="button" onclick="saveCollectConfig()">保存采集配置</button>
+            </div>
+          </details>
+        </article>
+
+        <article class="panel sessions shared-panel">
+          <div class="panel-head">
+            <div><h2>共享工作区</h2><p class="hint quiet" id="sharedSummary">读取共享索引…</p></div>
+            <div class="panel-actions">
+              <button class="ghost" onclick="openRemotePublishModal()">发布远端 Session</button>
+              <button class="text-btn" onclick="loadState()">刷新</button>
+            </div>
+          </div>
+          <div id="sharedSessionList" class="empty-state">尚未连接共享工作区</div>
+        </article>
+
+        <article class="panel" id="collectReviewSection">
+          <div class="panel-head">
+            <div>
+              <h2>打标</h2>
+              <p class="hint quiet" id="reviewBindHint">跟随当前技能的本地会话 · 扫描约每 3s 更新</p>
+            </div>
+            <div class="panel-actions">
+              <button class="ghost" id="reviewFinishBtn" onclick="finishActiveCollection()" hidden>结束并确认打标</button>
+              <button class="primary green" id="reviewUploadBtn" onclick="uploadActiveReview()" hidden>上传到 cluster_0</button>
+            </div>
+          </div>
+          <div class="review-top">
+            <select id="reviewCollection" onchange="loadReview()"></select>
+            <button class="primary" onclick="openImportModal()">导入路径</button>
+            <button class="ghost" onclick="refreshReview()">重新扫描</button>
+            <button class="ghost" onclick="showManifest()">预览 JSON</button>
+          </div>
+          <div id="reviewFlowBanner" class="scan-preview empty">先选择技能并开始采集，Episode 会实时出现在下方</div>
+          <div class="review-layout">
+            <article class="panel video-panel">
+              <div class="dual-video-grid">
+                <div class="view-player"><span id="viewLabel0">视角 1</span><video id="player0" controls preload="metadata"></video><div id="videoEmpty0">选择 Episode</div></div>
+                <div class="view-player"><span id="viewLabel1">视角 2</span><video id="player1" controls preload="metadata"></video><div id="videoEmpty1">等待第二视角</div></div>
+              </div>
+              <div class="episode-info"><div><span id="epIndex">EP —</span><h2 id="epName">尚未选择</h2><small id="epPath">—</small></div><span class="status-pill" id="epStatus">待标注</span></div>
+              <div class="lock-notice" id="lockNotice">本机会话无需协作锁</div>
+              <div class="label-actions"><button id="markInvalid" class="invalid" onclick="markCurrent('invalid')">不合格</button><button id="markValid" class="valid" onclick="markCurrent('valid')">合格</button></div>
+            </article>
+            <article class="panel episode-panel">
+              <div class="panel-head"><div><h2>Episodes</h2></div><div class="mini-counts"><b id="validCount">0</b> 合格 · <b id="invalidCount">0</b> 不合格</div></div>
+              <div class="filter-row"><button class="chip active" data-filter="all">全部</button><button class="chip" data-filter="unreviewed">待标注</button><button class="chip" data-filter="valid">合格</button><button class="chip" data-filter="invalid">不合格</button></div>
+              <div id="episodeList" class="episode-list empty-state">请选择数采会话</div>
+            </article>
+          </div>
+        </article>
+      </section>
+
+      <section class="page" id="page-replay">
+        <article class="panel skill-lead">
+          <div class="panel-head"><div><h2>技能卡</h2></div><button class="text-btn" onclick="refreshReplaySkills()">刷新</button></div>
+          <div id="replaySkillGrid" class="skill-pick-grid empty-state">加载技能…</div>
+          <div class="form-grid">
+            <label>执行<select id="replayExecMode"><option value="remote" selected>cluster_0</option><option value="local">本机</option><option value="auto">自动</option></select></label>
+            <input type="hidden" id="replayHost" value="cluster_0">
+            <label class="wide">技能内数据集<select id="replaySkillDataset" onchange="onReplaySkillDatasetChange()"><option value="">先选技能</option></select></label>
+          </div>
+          <details class="quiet-details" id="replayAttachDetails">
+            <summary>添加已有数据集到技能卡</summary>
+            <p class="hint quiet">把 LeRobot V2.1（默认）或 V3 数据集挂到技能卡。扫描 / 清理 / 导出 valid 按 V2.1；Sonic 仿真回放仍需 V3 unified。</p>
+            <div class="form-grid">
+              <label class="wide">目标技能<select id="replayAttachSkill"><option value="">先选技能卡或在此选择</option></select></label>
+              <label class="wide">数据集路径（cluster_0）<input id="replayAttachPath" placeholder="/mnt/data2/wpy/workspace/830demo/.../session 或 .../datasets/830/..."></label>
+              <label class="wide">显示名称<input id="replayAttachLabel" placeholder="可选，默认取目录名"></label>
+            </div>
+            <div class="panel-actions" style="margin-top:8px">
+              <button class="ghost" type="button" onclick="fillAttachPathFromCurrent()">用当前扫描路径</button>
+              <button class="primary" type="button" onclick="attachDatasetToReplaySkill()">添加到技能卡</button>
+            </div>
+          </details>
+          <details class="quiet-details">
+            <summary>路径与 QA 目录</summary>
+            <div class="form-grid">
+              <label class="wide">预设<select id="replayPreset" onchange="applyReplayPreset()"><option value="">选择或手动输入</option></select></label>
+              <label class="wide">数据集根目录<input id="replayDatasetPath" placeholder="/path/to/dataset" oninput="markReplayDatasetStale()"></label>
+              <label class="wide">cluster_0 / 830 同步路径<input id="replayRemote830Path" placeholder="/mnt/data2/wpy/workspace/Phi0_Dataset/Phi0-MixCorpus/datasets/830/…"></label>
+              <label class="wide">QA 程序目录<input id="replayQaRoot" placeholder="/path/to/sonic_qa"></label>
+            </div>
+          </details>
+          <div class="panel-actions" style="margin-top:12px">
+            <button class="primary" onclick="probeReplayDataset()">扫描数据集</button>
+          </div>
+          <div id="replayDatasetSummary" class="scan-preview empty">尚未扫描</div>
+        </article>
+
+        <div class="stats-strip replay-metrics">
+          <div><span>Episode</span><b id="replayEpTotal">—</b></div>
+          <div><span>本次</span><b id="replayEpSelected">0</b></div>
+          <div class="warn"><span>异常</span><b id="replayIssueCount">0</b></div>
+          <div id="replayPruneMetric"><span>清理</span><b id="replayPruneStatus">待处理</b></div>
+        </div>
+
+        <div class="replay-layout">
+          <div class="replay-main">
+            <article class="panel replay-viewer-panel">
+              <div class="panel-head">
+                <div><h2>回放</h2></div>
+                <div class="panel-actions">
+                  <span class="connection-badge quiet" id="viserBadge">Viser 未连接</span>
+                  <button class="ghost" onclick="checkViser()">检测</button>
+                  <button class="ghost" onclick="reloadViserFrame()" title="强制重载 iframe">刷新画面</button>
+                  <button class="ghost" onclick="openViserWindow()">新窗口</button>
+                </div>
+              </div>
+              <p class="hint quiet" id="viserTunnelHint" hidden>远端回放自动建隧道 · 8081</p>
+              <div class="viser-shell">
+                <iframe id="viserFrame" title="Viser 回放" src="about:blank"></iframe>
+                <div id="viserPlaceholder" class="viser-placeholder">
+                  <div class="viser-icon">▶</div>
+                  <p>选 Episode 后开始回放</p>
+                </div>
+              </div>
+              <div class="replay-controls">
+                <button class="primary green" id="replayStartBtn" onclick="startReplay()">开始回放</button>
+                <button class="ghost" id="replayStopBtn" onclick="stopReplay()" disabled>停止</button>
+                <button class="ghost" onclick="resetReplaySession()">重置</button>
+                <button class="ghost" onclick="refreshReplaySummary()">刷新结果</button>
+              </div>
+              <div class="replay-annotate-bar" id="replayAnnotateBar">
+                <div class="annotate-focus">
+                  <span class="muted-label">焦点</span>
+                  <button type="button" class="ghost compact" onclick="shiftAnnotateFocus(-1)">‹</button>
+                  <b id="replayFocusEp">—</b>
+                  <button type="button" class="ghost compact" onclick="shiftAnnotateFocus(1)">›</button>
+                </div>
+                <div class="annotate-actions">
+                  <button type="button" class="primary" onclick="markFocusFail()">F Fail</button>
+                  <button type="button" class="ghost" onclick="clearFocusFail()">U 撤销</button>
+                  <button type="button" class="ghost" onclick="markFocusSuspect()">S 可疑</button>
+                </div>
+              </div>
+            </article>
+
+            <article class="panel replay-jobs-board">
+              <div class="panel-head">
+                <div><h2>任务</h2></div>
+                <div class="panel-actions">
+                  <span class="muted-label" id="replayJobCount">0</span>
+                  <button class="text-btn" onclick="loadState()">刷新</button>
+                </div>
+              </div>
+              <div id="replayJobList" class="jobs-board-list empty-state">暂无任务</div>
+              <pre id="replayLog" class="jobs-board-log">等待任务…</pre>
+            </article>
+
+            <article class="panel issue-board" id="issueBoard">
+              <div class="panel-head">
+                <div><h2>异常公告</h2></div>
+                <span class="issue-board-status" id="issueBoardStatus">待处理</span>
+              </div>
+              <div id="issueList" class="issue-list empty-state">暂无异常</div>
+              <div class="issue-actions">
+                <button class="ghost" onclick="selectAllIssues(true)">全选</button>
+                <button class="ghost" onclick="selectAllIssues(false)">取消</button>
+                <button class="ghost" onclick="clearReplayIssues()">清除</button>
+                <button class="ghost" onclick="markSelectedIssuesDelete()">标删除</button>
+                <button class="primary" id="pruneConfirmBtn" onclick="confirmPrune()" disabled>确认删除并重排</button>
+                <button class="primary green" onclick="exportValidAllowlist()">写回 labels（valid/invalid）</button>
+                <button class="ghost" onclick="syncValidToCluster830()" title="仅在需要兼容旧 allowlist 时使用">同步 allowlist（可选）</button>
+                <button class="ghost" onclick="goTrainWithReplayDataset()">前往训练</button>
+              </div>
+            </article>
+          </div>
+
+          <aside class="replay-side">
+            <article class="panel">
+              <div class="panel-head"><div><h2>历史实验</h2></div><button class="text-btn" onclick="importLatestExperiment()">导入最新</button></div>
+              <div id="replayExperimentList" class="experiment-list empty-state">扫描后显示</div>
+            </article>
+
+            <article class="panel episode-panel replay-ep-panel">
+              <div class="panel-head">
+                <div><h2>选择范围</h2><p class="hint quiet">默认 LeRobot V2.1 · 只筛 valid · invalid 不进网格</p></div>
+                <div class="mini-counts"><b id="replayInventoryCount">0</b> valid</div>
+              </div>
+              <label class="wide replay-range-label">Episode 范围<input id="replayEpisodes" placeholder="60-70 或 62 63 64" value="0-19"></label>
+              <div class="form-grid replay-labels-row">
+                <label class="wide">01 标签 JSON（valid/invalid）<input id="replayLabelsPath" placeholder="/path/to/labels.json 或 skill_N.json"></label>
+              </div>
+              <div class="filter-row replay-quick-row">
+                <button type="button" class="chip" onclick="applyReplayLabelsFilter()">应用 valid</button>
+                <button type="button" class="chip" onclick="applyReplayQuick('unqa')">未 QA</button>
+                <button type="button" class="chip" onclick="applyReplayQuick('fails')">失败</button>
+                <button type="button" class="chip" onclick="applyReplayQuick('random')">随机</button>
+                <button type="button" class="chip" onclick="applyReplayQuick('all')">全部 valid</button>
+              </div>
+              <div class="filter-row replay-mode-row">
+                <button class="chip active" data-replay-mode="range" onclick="setReplayPickMode('range', this)">连续区间</button>
+                <button class="chip" data-replay-mode="pick" onclick="setReplayPickMode('pick', this)">点选</button>
+              </div>
+              <p class="hint quiet" id="replayPickHint">例：60-70（仅 valid 池内）</p>
+              <div id="replayEpGrid" class="replay-ep-grid empty-state">先扫描数据集</div>
+            </article>
+          </aside>
+        </div>
+      </section>
+
+      <section class="page" id="page-train">
+        <div id="trainCardView">
+          <div class="panel-head train-top-head">
+            <div><h2>技能卡</h2><p class="hint quiet">点选 · 删除可整理列表 · 内置仅隐藏 · <strong>混合训练</strong> / 新建仍可用</p></div>
+            <div class="panel-actions">
+              <label class="inline-label">训练主机<select id="trainExecMode"><option value="cluster_0" selected>cluster_0</option><option value="h20-0">h20-0</option><option value="h20-1">h20-1</option><option value="cluster_2" disabled>cluster_2（未就绪）</option><option value="local">本机 local</option></select></label>
+              <span class="hint quiet" id="trainHostHint"></span>
+              <button class="text-btn" onclick="initTrainPage()">刷新</button>
+            </div>
+          </div>
+          <div id="trainMixBar" class="train-mix-bar" hidden>
+            <span id="trainMixHint">已选 0 个技能</span>
+            <button class="ghost" onclick="cancelTrainMixMode()">取消</button>
+            <button class="primary green" id="trainMixConfirmBtn" onclick="confirmTrainMix()" disabled>确认混合</button>
+          </div>
+          <div id="trainCardGrid" class="train-card-grid empty-state">加载技能…</div>
+        </div>
+
+        <div id="trainWorkspace" class="train-workspace" hidden>
+          <div class="train-ws-bar">
+            <button class="ghost" onclick="backToTrainCards()">← 返回</button>
+            <div><h2 id="trainWsTitle">训练</h2></div>
+            <span class="muted-label" id="trainWsSkill">—</span>
+            <p class="step" id="trainWsBadge" hidden>TRAIN</p>
+          </div>
+
+          <article class="panel train-params-panel">
+            <div class="panel-head"><div><h2>参数</h2><p class="hint quiet" id="trainParamsHint">仅使用 02 导出的 valid allowlist</p></div><span class="muted-label" id="trainEffBatch">batch —</span></div>
+            <div id="trainMixSlots" class="train-mix-slots" hidden></div>
+            <div class="form-grid train-simple-grid">
+              <label class="wide" id="trainDatasetLabel">技能卡挂载（快捷）<select id="trainDataset" onchange="onTrainDatasetChange()"></select></label>
+              <label class="wide" id="trainPromptLabel">Prompt<input id="trainPrompt" placeholder="任务提示"></label>
+              <label>Epochs<input id="trainEpochs" type="number" value="4" min="1" oninput="updateTrainEffBatch()"></label>
+              <label>CUDA（张数=列表）<input id="trainCuda" placeholder="0,1,2,3,4,5,6,7" oninput="updateTrainEffBatch()"></label>
+              <label class="wide" id="trainDatasetPathLabel">已选路径（可多选，全部训练；仅 valid；pack 保留到 Phi_0_train_data）
+                <textarea id="trainDatasetPath" rows="3" placeholder="/mnt/data2/wpy/workspace/830demo/..." oninput="markTrainDatasetManual()"></textarea>
+              </label>
+            </div>
+            <div id="trainSingleBrowseBlock">
+            <div class="train-browse-head" id="trainBrowseHead">
+              <div>
+                <h3>830demo 目录</h3>
+                <p class="hint quiet" id="trainBrowseHint">勾选 session 或整个技能文件夹 · 可同时选 skill5 + skill_5_throw_the_rubbish · 仅 valid · pack 保留到 Phi_0_train_data</p>
+              </div>
+              <div class="panel-actions">
+                <button type="button" class="ghost" onclick="refreshTrainBrowse()">扫描</button>
+                <button type="button" class="text-btn" onclick="clearTrainBrowseSelection()">清空勾选</button>
+              </div>
+            </div>
+            <div id="trainDatasetTree" class="train-dataset-tree empty">打开训练页后自动扫描 830demo…</div>
+            </div>
+            <p class="hint quiet" id="trainStepsHint">选择数据集后显示预估 steps</p>
+            <details class="infer-advanced train-advanced">
+              <summary>高级</summary>
+              <div class="form-grid train-param-grid">
+                <label>LR<input id="trainLr" value="1e-4"></label>
+                <label>Warmup ratio<input id="trainWarmupRatio" type="number" step="0.01" value="0.05"></label>
+                <label>每卡 batch<input id="trainNumEnvs" type="number" value="32" oninput="updateTrainEffBatch()"></label>
+                <label>每 N epoch 存 ckpt<input id="trainCkptEveryEpoch" type="number" min="0" value="1" oninput="syncTrainCkptMode()" title="默认按 epoch：每个 epoch 结束存一次；设为 0 才改用下方 steps"></label>
+                <label class="quiet">Ckpt every (steps，可选)<input id="trainCkptEvery" type="number" value="0" title="仅当「每 N epoch 存 ckpt」=0 时生效；epoch 模式下固定为 0"></label>
+                <label>保留 ckpt 数<input id="trainCkptStepKeep" type="number" min="0" value="3" title="PHI0_CKPT_STEP_KEEP：保留最近 N 个 phi0_student_step*.pt；0=只覆盖 last"></label>
+                <label>Hand<select id="trainHand"><option value="dex3">dex3</option><option value="revo2">revo2</option></select></label>
+                <label class="wide">本次输出目录<input id="trainOutDir" readonly placeholder="启动后自动新建 /mnt/data2/wpy/workspace/Phi_0_model_zoo/<skill>_<时间>，不覆盖旧目录"></label>
+              </div>
+            </details>
+            <div id="trainDatasetReady" class="scan-preview empty">选择数据集后显示就绪检查</div>
+            <div class="train-param-actions">
+              <button class="primary green" id="trainStartBtn" type="button" onclick="startTrainJob()">开始训练</button>
+              <button class="ghost train-stop" id="trainStopBtn" type="button" onclick="stopTrainJob()" disabled>停止当前</button>
+            </div>
+            <p class="hint quiet" id="trainMultiHostHint" style="margin-top:8px">可同时在不同 SSH 节点各跑一路训练；下方任务列表点击切换日志与曲线。同一节点同时只能跑一路。</p>
+          </article>
+
+          <div class="train-monitor-stack">
+            <article class="panel train-chart-panel">
+              <div class="panel-head"><div><h2>曲线</h2><p class="hint quiet">仅画 EMA 趋势 · 悬停显示原始数值 · 纵轴下1/3=最低→0.1，上2/3=0.1→最大 · <span id="tmHostHint">监控 host：—</span></p></div><button class="text-btn" onclick="refreshTrainMetrics()">刷新</button></div>
+              <p class="hint" id="trainMonitorBanner" style="margin:0 0 8px">未选任务 · 点击右侧/下方任务列表切换节点监控</p>
+              <div class="train-chart-tabs" id="trainChartTabs" role="tablist"></div>
+              <div class="train-live-metrics" id="trainLiveMetrics">
+                <div><span>epoch</span><b id="tmEpoch">—</b></div>
+                <div><span>step</span><b id="tmStep">—</b></div>
+                <div><span>loss</span><b id="tmLoss">—</b></div>
+                <div><span>loss_z</span><b id="tmLossZ">—</b></div>
+                <div><span>hand</span><b id="tmLossHand">—</b></div>
+                <div><span>z_phys</span><b id="tmLossZPhys">—</b></div>
+                <div><span>ETA</span><b id="tmEta">—</b></div>
+                <div><span>speed</span><b id="tmSpeed">—</b></div>
+              </div>
+              <div class="train-chart-wrap">
+                <canvas id="trainChart" width="1400" height="520"></canvas>
+                <div id="trainChartTip" class="train-chart-tip" hidden></div>
+              </div>
+              <p class="hint quiet" id="trainChartModuleHint" style="margin-top:8px"></p>
+              <div class="panel-head" style="margin-top:12px"><div><h2>产物</h2></div><button class="text-btn" onclick="refreshTrainCkpts()">刷新</button></div>
+              <div id="trainCkptList" class="ckpt-list empty-state">训练后显示 .pt</div>
+            </article>
+            <article class="panel train-term-panel">
+              <div class="panel-head"><div><h2>日志</h2><p class="hint quiet" id="trainLogHostHint">点击任务切换对应节点日志</p></div><button class="text-btn" onclick="refreshTrainLogs()">刷新</button></div>
+              <pre id="trainTerminal" class="train-terminal train-terminal-lg">等待启动…</pre>
+              <div class="panel-head" style="margin-top:10px"><div><h2>训练任务</h2><p class="hint quiet">多节点并行 · 点击切换监控</p></div></div>
+              <div id="trainJobList" class="train-job-list empty-state">暂无训练任务</div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="page-infer">
+        <article class="panel infer-params-panel skill-lead">
+          <div class="panel-head"><div><h2>技能卡</h2><p class="hint quiet">回放 / 闭环仅 valid 池</p></div>
+            <span class="muted-label">cluster_0 · 全远端 · ssh -Y 交互 MuJoCo</span>
+            <input type="hidden" id="inferExecMode" value="remote">
+            <input type="hidden" id="inferEp" value="0">
+          </div>
+          <div class="infer-skill-block">
+            <div id="inferSkillCards" class="infer-skill-card-grid empty-state">加载技能…</div>
+            <input type="hidden" id="inferSkill" value="">
+          </div>
+          <div id="inferSkillTools" class="infer-skill-tools" hidden>
+            <div class="infer-skill-tools-main">
+              <span class="pill" id="inferToolsSkillBadge">—</span>
+              <strong id="inferToolsSkillTitle">未选技能</strong>
+              <small id="inferToolsEpLabel">回放 ep—</small>
+            </div>
+            <div class="infer-skill-tools-actions">
+              <button type="button" class="ghost" id="inferCycleVideoBtn" onclick="cycleCurrentInferReplayVideo()">更换回放视频</button>
+            </div>
+          </div>
+          <div id="inferActiveParams" class="infer-active-params">
+            <div id="inferSkillMeta" class="infer-hero-card empty">选择技能后继续</div>
+            <div class="infer-weight-row">
+              <div class="infer-weight-head">
+                <h3>权重</h3>
+                <p class="hint quiet" id="inferCkptSelected">未选择权重</p>
+              </div>
+              <label class="wide">云端目录
+                <div class="path-row">
+                  <input id="inferCkptDir" placeholder="/mnt/data2/wpy/workspace/Phi_0_model_zoo/…" onkeydown="if(event.key==='Enter'){event.preventDefault();scanInferCkpts()}">
+                  <button type="button" class="ghost" onclick="scanInferCkpts()">扫描</button>
+                </div>
+              </label>
+              <div id="inferCkptList" class="ckpt-list empty-state">选择技能后扫描 / 显示 .pt</div>
+            </div>
+            <div class="infer-workspace">
+              <div class="infer-workspace-main">
+                <label class="wide">Prompt<input id="inferPrompt" placeholder="任务提示"></label>
+                <div class="infer-replay-preview">
+                  <div class="infer-skill-head"><span>远端回放预览</span><small id="inferVideoProbe">—</small></div>
+                  <div class="infer-cache-bar" id="inferCacheBar" hidden><i id="inferCacheFill"></i><span id="inferCacheText">缓存中…</span></div>
+                  <div class="infer-dual-videos infer-dual-videos-inline">
+                    <div><span>ego</span><video id="inferEgoVideo" muted playsinline preload="auto"></video></div>
+                    <div><span>wrist</span><video id="inferWristVideo" muted playsinline preload="auto"></video></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <details class="infer-advanced">
+              <summary>高级</summary>
+              <div class="form-grid train-param-grid">
+                <label class="wide">Student ckpt<input id="inferCkpt" placeholder="/path/to/phi0_student_last.pt" oninput="syncInferCkptSelected()"></label>
+                <label class="wide">REF_ROOT<input id="inferRefRoot" onchange="refreshInferVideos()"></label>
+                <label>CUDA<input id="inferCuda" value="4"></label>
+                <label class="wide">输出目录<input id="inferOutDir" placeholder="自动"></label>
+                <input type="hidden" id="inferHorizon" value="32">
+                <input type="hidden" id="inferUseRtc" value="1">
+                <input type="hidden" id="inferRtcDelay" value="6">
+                <input type="hidden" id="inferRtcExec" value="26">
+                <input type="hidden" id="inferHandObs" value="g1_debug">
+                <input type="hidden" id="inferVlmSrc" value="frame_cache">
+              </div>
+            </details>
+            <div class="infer-stage-dock">
+              <div class="panel-actions infer-launch-actions">
+                <button class="primary green" id="inferInitBtn" onclick="inferAction('init')">一键启动</button>
+                <button class="ghost" type="button" id="inferOpenTermBtn" onclick="openInferMujocoTerminal()">打开桌面终端</button>
+                <button class="ghost danger-ghost" id="inferStopBtn" onclick="stopInferJob()" disabled>终止</button>
+                <button class="ghost danger-ghost" id="inferKillDeployBtn" onclick="killG1Deploy()" title='pkill -9 -f "g1_deploy"'>停 Deploy</button>
+                <div class="infer-actions-extra">
+                  <button class="text-btn" id="inferStartBtn" onclick="inferAction('start')">全自动</button>
+                  <button class="text-btn" onclick="openInferSkillModal()">保存技能</button>
+                </div>
+              </div>
+              <div class="collect-stack-status" id="inferStackStatus">
+                <span data-k="sim" class="lamp idle"><i></i>MuJoCo Sim</span>
+                <span data-k="policy" class="lamp idle"><i></i>策略推理</span>
+                <span data-k="deploy" class="lamp idle"><i></i>Deploy (sim)</span>
+              </div>
+              <p class="hint quiet" id="inferDisplayHint">一键：本机桌面弹出可拖动 <b>MuJoCo</b>（ssh -Y + glfw）并开日志终端；网页只控 Deploy（y → ] → Enter）。浏览器无法嵌真实 MuJoCo。</p>
+
+              <div class="infer-proc-logs">
+                <div class="infer-proc-tabs" id="inferProcTabs">
+                  <button type="button" class="chip active" data-log="sim" onclick="selectInferProcLog('sim')">MuJoCo Sim</button>
+                  <button type="button" class="chip" data-log="policy" onclick="selectInferProcLog('policy')">策略推理</button>
+                  <button type="button" class="chip" data-log="deploy" onclick="selectInferProcLog('deploy')">Deploy (sim)</button>
+                </div>
+                <pre id="inferProcLog" class="infer-deploy-log infer-proc-log">等待一键启动…</pre>
+              </div>
+
+              <div class="infer-deploy-tty collect-deploy-tty">
+                <div class="infer-deploy-tty-head">
+                  <span>Deploy Terminal</span>
+                  <small id="inferDeployHint">Sim 就绪后：y → 等 Init Done → ] → Enter</small>
+                  <span class="status-pill" id="inferDeployPhase">等待启动</span>
+                </div>
+                <div class="infer-phase-bar" id="inferPhaseBar">
+                  <span data-p="starting">等待</span>
+                  <span data-p="sim_ready">Sim</span>
+                  <span data-p="deploy_starting">Deploy 启动</span>
+                  <span data-p="init_done">Init Done</span>
+                  <span data-p="standing">站立</span>
+                  <span data-p="streaming">流式</span>
+                </div>
+                <div class="infer-actions collect-deploy-actions">
+                  <button class="ghost" id="inferDeployBtn" onclick="inferCmd('deploy')" disabled>y Deploy</button>
+                  <button class="ghost" id="inferStandBtn" onclick="inferCmd('stand')" disabled>] 站立</button>
+                  <button class="ghost" id="inferStreamBtn" onclick="inferCmd('stream')" disabled>Enter</button>
+                  <button class="ghost" id="inferStreamPBtn" onclick="inferCmd('stream_p')" disabled>P+Enter</button>
+                  <button class="ghost" id="inferPolicyBtn" onclick="inferCmd('policy')" disabled hidden>Policy</button>
+                </div>
+                <pre id="inferDeployLog" class="infer-deploy-log">等待一键启动…</pre>
+                <div class="infer-tty-keys">
+                  <button type="button" class="chip" onclick="sendInferTtyKey('y')">y</button>
+                  <button type="button" class="chip" onclick="sendInferTtyKey(']')">]</button>
+                  <button type="button" class="chip" onclick="sendInferTtyKey('enter')">Enter</button>
+                  <button type="button" class="chip" onclick="sendInferTtyKey('p')">p</button>
+                </div>
+                <div class="infer-tty-row">
+                  <span class="infer-tty-prompt">›</span>
+                  <input id="inferTtyInput" class="infer-tty-input" placeholder="输入 y / ] / enter 后回车" autocomplete="off" spellcheck="false"
+                    onkeydown="if(event.key==='Enter'){event.preventDefault();submitInferTty()}">
+                  <button type="button" class="ghost" onclick="submitInferTty()">发送</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <div class="infer-viz-zone">
+          <div class="infer-viz-label"><span>可视化</span><small>可切换技能同步 ckpt</small></div>
+          <div class="infer-main-grid">
+            <article class="panel infer-sim-panel">
+              <div class="panel-head"><div><h2>Sim 预览</h2><p class="hint quiet">网页预览备选 · 主交互在桌面 MuJoCo 窗</p></div>
+                <div class="infer-sim-head-actions">
+                  <button class="primary green" id="inferSwitchBtn" onclick="toggleInferSwitchPanel()" type="button">切换技能</button>
+                  <button class="text-btn" onclick="refreshInferPreview()" type="button">刷新</button>
+                </div>
+              </div>
+              <div id="inferSwitchPanel" class="infer-switch-panel" hidden>
+                <div class="infer-skill-head"><span>切换到</span><small>点卡同步重启</small></div>
+                <div id="inferSwitchCards" class="infer-skill-card-grid empty-state">加载技能…</div>
+              </div>
+              <div class="infer-sim-shell">
+                <img id="inferSimPreview" alt="sim live preview" hidden>
+                <video id="inferSimVideo" controls playsinline hidden></video>
+                <div id="inferSimPlaceholder" class="infer-sim-placeholder">等待预览…</div>
+              </div>
+              <pre id="inferTerminal" class="train-terminal">等待启动…</pre>
+            </article>
+            <aside class="panel infer-side-stack">
+              <div class="panel infer-monitor-panel">
+                <div class="panel-head"><div><h2>真机监视</h2></div>
+                  <span class="connection-badge quiet" id="inferMonBadge">未启动</span>
+                </div>
+                <div class="infer-mon-controls">
+                  <label>ZMQ Host<input id="inferMonHost" value="127.0.0.1" placeholder="IP"></label>
+                  <button class="ghost" id="inferMonStart" onclick="startInferMonitor()">启动</button>
+                  <button class="ghost" id="inferMonStop" onclick="stopInferMonitor()" disabled>停止</button>
+                </div>
+                <div class="infer-mon-hz" id="inferMonHz">
+                  <div data-port="5555"><span>5555 cam</span><b>—</b></div>
+                  <div data-port="5556"><span>5556 pose</span><b>—</b></div>
+                  <div data-port="5557"><span>5557 debug</span><b>—</b></div>
+                </div>
+                <div class="infer-mon-cam-shell">
+                  <img id="inferMonCam" alt="deploy camera" hidden>
+                  <div id="inferMonCamPh" class="infer-sim-placeholder">启动后显示</div>
+                </div>
+                <p class="hint quiet" id="inferMonHint">pose: —</p>
+              </div>
+              <div class="panel infer-job-panel">
+                <div class="panel-head"><div><h2>任务</h2></div></div>
+                <div id="inferJobList" class="train-job-list empty-state">暂无推理任务</div>
+              </div>
+            </aside>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <dialog id="hostModal"><div class="modal-head"><div><h2>远端 Host</h2></div><button onclick="hostModal.close()">×</button></div><p class="hint">SSH target 支持 SSH config 别名或 user@hostname，要求免交互登录。</p><div id="hostList"></div><div class="host-add"><input id="hostName" placeholder="显示名，如 cluster_1"><input id="hostTarget" placeholder="SSH target，如 user@10.0.0.8"><button class="primary" onclick="addHost()">添加</button></div></dialog>
+  <dialog id="sharedModal"><div class="modal-head"><div><h2>共享设置</h2></div><button onclick="sharedModal.close()">×</button></div><p class="hint">共享 SQLite 位于所选 Host 的根目录下，不需要启动额外数据库服务。</p><div class="form-grid"><label>共享 Host<select id="sharedHost"></select></label><label class="wide">共享根目录<input id="sharedRoot" value="/mnt/data2/wpy/workspace/820demo"></label><label class="toggle wide"><input id="sharedEnabled" type="checkbox" checked> 启用共享工作区</label></div><button class="primary green" onclick="saveSharedConfig()">保存并初始化共享数据库</button></dialog>
+  <dialog id="remotePublishModal"><div class="modal-head"><div><h2>发布远端 Session</h2></div><button onclick="remotePublishModal.close()">×</button></div><p class="hint">用于已经存在于 cluster_0、但未通过本站上传的数据。先只读扫描视频和现有 labels.json / 任务 JSON，确认后再加入共享索引；不会重新上传或移动原数据。</p><div class="form-grid"><label>所属共享任务<select id="remotePublishTask" onchange="suggestRemoteSessionPath()"></select></label><label class="wide">远端 Session 目录<input id="remotePublishPath" placeholder="/mnt/data2/.../skill_1/2026-08-11-20-51-09" oninput="clearRemotePreview()"></label></div><div id="remotePublishPreview" class="scan-preview empty">尚未扫描</div><div class="modal-actions"><button class="ghost" onclick="scanRemoteSession()">扫描并预览</button><button id="confirmRemotePublish" class="primary green" onclick="publishRemoteSession()" disabled>确认发布到共享工作区</button></div></dialog>
+  <dialog id="uploadModal" class="skill-upload-dialog">
+    <div class="modal-head">
+      <div><h2 id="uploadModalTitle">上传到技能</h2></div>
+      <button onclick="uploadModal.close()">×</button>
+    </div>
+    <p class="hint quiet" id="uploadSession">选择已有技能，或新建。</p>
+    <div class="skill-pick-tabs">
+      <button type="button" class="chip active" id="uploadPickExistingTab" onclick="setUploadSkillMode('existing')">选择已有技能</button>
+      <button type="button" class="chip" id="uploadPickNewTab" onclick="setUploadSkillMode('new')">新建技能</button>
+    </div>
+    <div id="uploadSkillPickPane">
+      <div id="uploadSkillGrid" class="skill-pick-grid empty-state">加载技能…</div>
+    </div>
+    <div id="uploadSkillNewPane" hidden>
+      <div class="form-grid">
+        <label>技能名称<input id="newSkillTitle" placeholder="例如：走向黑箱"></label>
+        <label>技能 ID<input id="newSkillId" placeholder="skill_1_walk_to_black_box"></label>
+        <label>Badge<input id="newSkillBadge" placeholder="WALK"></label>
+        <label class="wide">说明 / Prompt<input id="newSkillPrompt" placeholder="任务语言描述"></label>
+      </div>
+    </div>
+    <div class="form-grid" style="margin-top:12px">
+      <label>远端 Host<select id="uploadHost"></select></label>
+      <label class="wide">远端 Session 目录<input id="uploadRemote" placeholder="/mnt/data2/.../skill_x/session"></label>
+      <input type="hidden" id="uploadTask" value="">
+      <input type="hidden" id="uploadSkillId" value="">
+    </div>
+    <div class="modal-actions">
+      <button class="ghost" onclick="uploadModal.close()">取消</button>
+      <button id="uploadConfirmBtn" class="primary green" onclick="uploadCollection()">确认归属并开始上传</button>
+    </div>
+  </dialog>
+  <dialog id="importModal"><div class="modal-head"><div><h2>导入数据</h2></div><button onclick="importModal.close()">×</button></div><p class="hint">选择本机已有的数据目录。数据会先完整上传并发布到共享工作区，完成前不开放打标。</p><div class="form-grid"><label class="wide">本地数据路径<input id="importLocal" placeholder="/home/user/dataset/2026-08-11-20-51-09" onblur="suggestImportRemote()"></label><label>所属任务<select id="importTask" onchange="fillImportDefaults()"></select></label><label>上传 Host<select id="importHost"></select></label><label class="wide">远端保存路径<input id="importRemote" placeholder="/mnt/data2/.../skill_1/2026-08-11-20-51-09"></label></div><button class="primary green" onclick="importDataset()">先上传并发布</button></dialog>
+  <dialog id="inferSkillModal"><div class="modal-head"><div><h2>保存技能</h2></div><button onclick="inferSkillModal.close()">×</button></div><p class="hint">将当前 ckpt / 数据集 / prompt 存为可切换技能卡片。</p><div class="form-grid"><label class="wide">技能名称<input id="saveInferTitle" placeholder="例如：开门"></label><label>Badge<input id="saveInferBadge" placeholder="OPEN"></label></div><div class="modal-actions"><button class="ghost" onclick="inferSkillModal.close()">取消</button><button class="primary green" onclick="submitInferSkill()">保存</button></div></dialog>
+  <dialog id="trainCardCreateModal">
+    <div class="modal-head"><div><h2>新建训练技能卡</h2><p class="hint quiet">自定义配方，仅保存在 Studio；不删远端数据</p></div>
+      <button type="button" onclick="trainCardCreateModal.close()">×</button>
+    </div>
+    <div class="form-grid">
+      <label class="wide">标题<input id="trainNewTitle" placeholder="例如：pure2 再训"></label>
+      <label>Badge<input id="trainNewBadge" placeholder="PURE2"></label>
+      <label>Epochs<input id="trainNewEpochs" type="number" value="4" min="1"></label>
+      <label class="wide">Prompt<input id="trainNewPrompt" placeholder="任务提示"></label>
+      <label class="wide">数据集路径<input id="trainNewPath" placeholder="/mnt/data2/.../xxx_unified"></label>
+    </div>
+    <div class="modal-actions">
+      <button class="ghost" type="button" onclick="trainCardCreateModal.close()">取消</button>
+      <button class="primary green" type="button" onclick="submitTrainCardCreate()">创建</button>
+    </div>
+  </dialog>
+  <dialog id="jsonModal"><div class="modal-head"><div><h2 id="jsonTitle">清单预览</h2><p class="hint" id="jsonPath"></p></div><button onclick="jsonModal.close()">×</button></div><pre id="jsonPreview"></pre></dialog>
+  <div id="toast"></div>
+  <script src="/static/app.js?v=apple74"></script>
+</body>
+</html>

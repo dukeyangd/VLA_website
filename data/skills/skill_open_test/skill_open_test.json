@@ -1,0 +1,18 @@
+{
+  "id": "skill_open_test",
+  "title": "测试开门",
+  "badge": "OPEN",
+  "prompt": "打开门",
+  "description": "打开门",
+  "host_id": "cluster_0",
+  "remote_dir": "/mnt/data2/wpy/workspace/830demo/skill_open_test",
+  "collect_root": "/mnt/data2/gzy/workspace/wb-vla-data-station-src/data/collections/skill_open_test",
+  "current_session": "",
+  "current_local_dir": "",
+  "current_collection_id": "",
+  "folder": "/mnt/data2/gzy/workspace/wb-vla-data-station-src/data/skills/skill_open_test",
+  "created_at": "2026-09-12T03:06:57",
+  "updated_at": "2026-09-12T03:06:57",
+  "datasets": [],
+  "source": "studio"
+}

@@ -1,0 +1,145 @@
+{
+  "id": "skill1",
+  "title": "Skill1 · Walk to black box",
+  "badge": "SKILL1",
+  "prompt": "walk to the black box",
+  "description": "Skill1 · Walk to black box · /mnt/data2/wpy/workspace/830demo/skill_1_walk_to_black_box",
+  "host_id": "cluster_0",
+  "remote_dir": "/mnt/data2/wpy/workspace/830demo/skill_1_walk_to_black_box",
+  "collect_root": "/mnt/data2/gzy/workspace/wb-vla-data-station-src/data/collections/skill1",
+  "current_session": "",
+  "current_local_dir": "",
+  "current_collection_id": "",
+  "folder": "/mnt/data2/gzy/workspace/wb-vla-data-station-src/data/skills/skill1",
+  "created_at": "2026-09-09T02:58:32",
+  "updated_at": "2026-09-14T11:20:48",
+  "datasets": [
+    {
+      "id": "2026-09-01-17-00-42",
+      "label": "2026-09-01-17-00-42 (valid 110/111)",
+      "path": "/mnt/data2/wpy/workspace/830demo/skill_1_walk_to_black_box/2026-09-01-17-00-42",
+      "remote_path": "/mnt/data2/wpy/workspace/830demo/skill_1_walk_to_black_box/2026-09-01-17-00-42",
+      "source": "830demo_parent_labels",
+      "ready": true,
+      "attached_at": "2026-09-09T02:58:32",
+      "total_episodes": 111,
+      "valid_count": 110,
+      "labels_path": "/mnt/data2/wpy/workspace/830demo/skill_1_walk_to_black_box/skill_1.json",
+      "prompt": "demo",
+      "total_frames": 49190,
+      "robot_type": null
+    },
+    {
+      "id": "2026-09-08-23-22-02",
+      "label": "2026-09-08-23-22-02 (valid 68/78)",
+      "path": "/mnt/data2/wpy/workspace/830demo/skill_1_walk_to_black_box/2026-09-08-23-22-02",
+      "remote_path": "/mnt/data2/wpy/workspace/830demo/skill_1_walk_to_black_box/2026-09-08-23-22-02",
+      "source": "830demo_parent_labels",
+      "ready": true,
+      "attached_at": "2026-09-09T02:58:32",
+      "total_episodes": 78,
+      "valid_count": 68,
+      "labels_path": "/mnt/data2/wpy/workspace/830demo/skill_1_walk_to_black_box/skill_1.json",
+      "prompt": "demo",
+      "total_frames": 37100,
+      "robot_type": null
+    },
+    {
+      "id": "2026-09-10-18-11-27",
+      "label": "2026-09-10-18-11-27 (valid 37/42)",
+      "path": "/mnt/data2/wpy/workspace/830demo/skill_1_walk_to_black_box/2026-09-10-18-11-27",
+      "remote_path": "/mnt/data2/wpy/workspace/830demo/skill_1_walk_to_black_box/2026-09-10-18-11-27",
+      "source": "830demo_parent_labels",
+      "ready": true,
+      "attached_at": "2026-09-12T02:36:02",
+      "total_episodes": 42,
+      "valid_count": 37,
+      "labels_path": "/mnt/data2/wpy/workspace/830demo/skill_1_walk_to_black_box/skill_1.json",
+      "prompt": "demo",
+      "total_frames": 22914,
+      "robot_type": null
+    },
+    {
+      "id": "830demo_skill1_walk_unified",
+      "label": "830demo_skill1_walk_unified",
+      "path": "/mnt/data2/wpy/workspace/local_nvme/datasets/830/830demo_skill1_walk_unified",
+      "source": "ref_root",
+      "ready": true,
+      "total_episodes": 110,
+      "total_frames": 48913,
+      "robot_type": "unitree_g1"
+    },
+    {
+      "id": "studio_tmp_unified_link",
+      "label": "studio_tmp_unified_link",
+      "path": "/mnt/data2/wpy/workspace/Phi_0_model_zoo/Phi_0_train_data/skill1_20260914_080817/studio_tmp_unified_link",
+      "source": "ref_root",
+      "ready": true,
+      "total_episodes": 193,
+      "total_frames": 92136,
+      "robot_type": "unitree_g1"
+    },
+    {
+      "id": "studio_tmp_unified_link",
+      "label": "studio_tmp_unified_link",
+      "path": "/mnt/data2/wpy/workspace/Phi_0_model_zoo/Phi_0_train_data/skill1_20260914_081353/studio_tmp_unified_link",
+      "source": "ref_root",
+      "ready": true,
+      "total_episodes": 193,
+      "total_frames": 92136,
+      "robot_type": "unitree_g1"
+    }
+  ],
+  "source": "830demo_cluster0_rebind",
+  "labels_manifest": "skill_1.json",
+  "labels_path": "/mnt/data2/wpy/workspace/830demo/skill_1_walk_to_black_box/skill_1.json",
+  "manifest_name": "skill_1.json",
+  "task_name": "skill_1_walk_to_black_box",
+  "ref_root": "/mnt/data2/wpy/workspace/Phi_0_model_zoo/Phi_0_train_data/skill1_20260914_081353/studio_tmp_unified_link",
+  "student_ckpt": "/mnt/data2/wpy/workspace/Phi_0_model_zoo/skill1_20260914_081353/phi0_student_last.pt",
+  "train_out_dir": "/mnt/data2/wpy/workspace/Phi_0_model_zoo/skill1_20260914_081353",
+  "hand_obs": "commanded",
+  "recipe_id": "skill1_walk",
+  "preferred_dataset_id": "2026-09-01-17-00-42",
+  "defaults": {
+    "epochs": 3,
+    "num_envs": 32,
+    "ngpu": 8,
+    "lr": "1e-4",
+    "warmup_ratio": 0.05,
+    "ckpt_every": 0,
+    "ckpt_every_epoch": 1,
+    "ckpt_step_keep": 3,
+    "hand_mode": "dex3",
+    "horizon": 32,
+    "lr_scheduler": "cosine",
+    "deploy_policy": "sonic_v1_1",
+    "cuda_devices": "0,1,2,3,4,5,6,7"
+  },
+  "ckpts": [
+    {
+      "path": "/mnt/data2/wpy/workspace/Phi_0_model_zoo/skill1_20260914_081353/phi0_student_last.pt",
+      "name": "phi0_student_last.pt",
+      "size": 367538493,
+      "mtime": 1789391077
+    },
+    {
+      "path": "/mnt/data2/wpy/workspace/Phi_0_model_zoo/skill1_20260914_081353/phi0_student_step002880.pt",
+      "name": "phi0_student_step002880.pt",
+      "size": 367538493,
+      "mtime": 1789389420
+    },
+    {
+      "path": "/mnt/data2/wpy/workspace/Phi_0_model_zoo/skill1_20260914_081353/phi0_student_step005760.pt",
+      "name": "phi0_student_step005760.pt",
+      "size": 367538493,
+      "mtime": 1789390249
+    },
+    {
+      "path": "/mnt/data2/wpy/workspace/Phi_0_model_zoo/skill1_20260914_081353/phi0_student_step008640.pt",
+      "name": "phi0_student_step008640.pt",
+      "size": 367538493,
+      "mtime": 1789391077
+    }
+  ]
+}

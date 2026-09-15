@@ -1,0 +1,7 @@
+.venv/
+__pycache__/
+state/
+.pytest_cache/
+cache/
+*.tar.gz
+*.zip

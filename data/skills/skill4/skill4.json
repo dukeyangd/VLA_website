@@ -1,0 +1,209 @@
+{
+  "id": "skill4",
+  "title": "Skill4 · Put the flower",
+  "badge": "SKILL4",
+  "prompt": "put the flower",
+  "description": "Skill4 · Put the flower · /mnt/data2/wpy/workspace/830demo/skill_4_put_the_flower",
+  "host_id": "cluster_0",
+  "remote_dir": "/mnt/data2/wpy/workspace/830demo/skill_4_put_the_flower",
+  "collect_root": "/mnt/data2/gzy/workspace/wb-vla-data-station-src/data/collections/skill4",
+  "current_session": "",
+  "current_local_dir": "",
+  "current_collection_id": "",
+  "folder": "/mnt/data2/gzy/workspace/wb-vla-data-station-src/data/skills/skill4",
+  "created_at": "2026-09-09T02:58:32",
+  "updated_at": "2026-09-14T11:20:48",
+  "datasets": [
+    {
+      "id": "2026-09-05-13-53-58",
+      "label": "2026-09-05-13-53-58 (valid 72/91)",
+      "path": "/mnt/data2/wpy/workspace/830demo/skill_4_put_the_flower/2026-09-05-13-53-58",
+      "remote_path": "/mnt/data2/wpy/workspace/830demo/skill_4_put_the_flower/2026-09-05-13-53-58",
+      "source": "830demo_parent_labels",
+      "ready": true,
+      "attached_at": "2026-09-09T02:58:32",
+      "total_episodes": 91,
+      "valid_count": 72,
+      "labels_path": "/mnt/data2/wpy/workspace/830demo/skill_4_put_the_flower/skill_4.json",
+      "prompt": "demo",
+      "total_frames": 67535,
+      "robot_type": null
+    },
+    {
+      "id": "2026-09-05-15-34-00",
+      "label": "2026-09-05-15-34-00 (valid 123/136)",
+      "path": "/mnt/data2/wpy/workspace/830demo/skill_4_put_the_flower/2026-09-05-15-34-00",
+      "remote_path": "/mnt/data2/wpy/workspace/830demo/skill_4_put_the_flower/2026-09-05-15-34-00",
+      "source": "830demo_parent_labels",
+      "ready": true,
+      "attached_at": "2026-09-09T02:58:32",
+      "total_episodes": 136,
+      "valid_count": 123,
+      "labels_path": "/mnt/data2/wpy/workspace/830demo/skill_4_put_the_flower/skill_4.json",
+      "prompt": "demo",
+      "total_frames": 93331,
+      "robot_type": null
+    },
+    {
+      "id": "2026-09-09-23-03-24",
+      "label": "2026-09-09-23-03-24 (valid 23/49)",
+      "path": "/mnt/data2/wpy/workspace/830demo/skill_4_put_the_flower/2026-09-09-23-03-24",
+      "remote_path": "/mnt/data2/wpy/workspace/830demo/skill_4_put_the_flower/2026-09-09-23-03-24",
+      "source": "830demo_parent_labels",
+      "ready": true,
+      "attached_at": "2026-09-10T02:11:10",
+      "total_episodes": 49,
+      "valid_count": 23,
+      "labels_path": "/mnt/data2/wpy/workspace/830demo/skill_4_put_the_flower/skill_4.json",
+      "prompt": "demo",
+      "total_frames": 42222,
+      "robot_type": null
+    },
+    {
+      "id": "2026-09-09-23-41-54",
+      "label": "2026-09-09-23-41-54 (valid 57/68)",
+      "path": "/mnt/data2/wpy/workspace/830demo/skill_4_put_the_flower/2026-09-09-23-41-54",
+      "remote_path": "/mnt/data2/wpy/workspace/830demo/skill_4_put_the_flower/2026-09-09-23-41-54",
+      "source": "830demo_parent_labels",
+      "ready": true,
+      "attached_at": "2026-09-10T02:11:10",
+      "total_episodes": 68,
+      "valid_count": 57,
+      "labels_path": "/mnt/data2/wpy/workspace/830demo/skill_4_put_the_flower/skill_4.json",
+      "prompt": "demo",
+      "total_frames": 52659,
+      "robot_type": null
+    },
+    {
+      "id": "2026-09-11-16-33-19",
+      "label": "2026-09-11-16-33-19 (valid 73/74)",
+      "path": "/mnt/data2/wpy/workspace/830demo/skill_4_put_the_flower/2026-09-11-16-33-19",
+      "remote_path": "/mnt/data2/wpy/workspace/830demo/skill_4_put_the_flower/2026-09-11-16-33-19",
+      "source": "830demo_parent_labels",
+      "ready": true,
+      "attached_at": "2026-09-12T02:36:02",
+      "total_episodes": 74,
+      "valid_count": 73,
+      "labels_path": "/mnt/data2/wpy/workspace/830demo/skill_4_put_the_flower/skill_4.json",
+      "prompt": "demo",
+      "total_frames": 60585,
+      "robot_type": null
+    },
+    {
+      "id": "2026-09-11-17-22-31",
+      "label": "2026-09-11-17-22-31 (valid 48/54)",
+      "path": "/mnt/data2/wpy/workspace/830demo/skill_4_put_the_flower/2026-09-11-17-22-31",
+      "remote_path": "/mnt/data2/wpy/workspace/830demo/skill_4_put_the_flower/2026-09-11-17-22-31",
+      "source": "830demo_parent_labels",
+      "ready": true,
+      "attached_at": "2026-09-12T02:36:02",
+      "total_episodes": 54,
+      "valid_count": 48,
+      "labels_path": "/mnt/data2/wpy/workspace/830demo/skill_4_put_the_flower/skill_4.json",
+      "prompt": "demo",
+      "total_frames": 43884,
+      "robot_type": null
+    },
+    {
+      "id": "830mix_skill1234_demo5_unified",
+      "label": "830mix_skill1234_demo5_unified",
+      "path": "/mnt/data2/wpy/workspace/local_nvme/datasets/830/830mix_skill1234_demo5_unified",
+      "source": "ref_root",
+      "ready": true,
+      "total_episodes": 1364,
+      "total_frames": 925584,
+      "robot_type": "unitree_g1"
+    },
+    {
+      "id": "studio_tmp_unified_link",
+      "label": "studio_tmp_unified_link",
+      "path": "/mnt/data3/wpy/tmp/studio_train_packs/train_de7dab09/studio_tmp_unified_link",
+      "source": "ref_root",
+      "ready": true,
+      "total_episodes": 396,
+      "total_frames": 301496,
+      "robot_type": "unitree_g1"
+    },
+    {
+      "id": "studio_tmp_unified_link",
+      "label": "studio_tmp_unified_link",
+      "path": "/mnt/data3/wpy/tmp/studio_train_packs/train_d87aa0cc/studio_tmp_unified_link",
+      "source": "ref_root",
+      "ready": true,
+      "total_episodes": 396,
+      "total_frames": 301496,
+      "robot_type": "unitree_g1"
+    }
+  ],
+  "source": "830demo_cluster0_rebind",
+  "labels_manifest": "skill_4.json",
+  "labels_path": "/mnt/data2/wpy/workspace/830demo/skill_4_put_the_flower/skill_4.json",
+  "manifest_name": "skill_4.json",
+  "task_name": "skill_4_put_the_flower",
+  "ref_root": "/mnt/data2/wpy/workspace/Phi_0_model_zoo/Phi_0_train_data/skill4_20260914_085501/studio_tmp_unified_link",
+  "student_ckpt": "/mnt/data3/wpy/830mix_skill1234_demo5_handcmd_lag1_vlm_cache_h32_b32_ddp8_e2_pv0.95_resume16k_20260909_011924/phi0_student_last.pt",
+  "train_out_dir": "/mnt/data2/wpy/workspace/Phi_0_model_zoo/skill4_20260914_085501",
+  "hand_obs": "commanded",
+  "preferred_dataset_id": "2026-09-05-13-53-58",
+  "train_profile": "vision_teleop",
+  "recipe_id": "skill4",
+  "defaults": {
+    "epochs": 4,
+    "num_envs": 32,
+    "ngpu": 8,
+    "lr": "1e-4",
+    "warmup_ratio": 0.05,
+    "ckpt_every": 0,
+    "ckpt_every_epoch": 1,
+    "ckpt_step_keep": 3,
+    "hand_mode": "dex3",
+    "horizon": 32,
+    "lr_scheduler": "cosine",
+    "deploy_policy": "sonic_v1_1",
+    "cuda_devices": "0,1,2,3,4,5,6,7"
+  },
+  "ckpts": [
+    {
+      "path": "/mnt/data3/wpy/830mix_skill1234_demo5_handcmd_lag1_vlm_cache_h32_b32_ddp8_e2_pv0.95_resume16k_20260909_011924/phi0_student_last.pt",
+      "name": "phi0_student_last.pt",
+      "size": 367538493,
+      "mtime": 1789371387
+    },
+    {
+      "path": "/mnt/data3/wpy/830mix_skill1234_demo5_handcmd_lag1_vlm_cache_h32_b32_ddp8_e2_pv0.95_resume16k_20260909_011924/phi0_student_step018844.pt",
+      "name": "phi0_student_step018844.pt",
+      "size": 367538493,
+      "mtime": 1789368767
+    },
+    {
+      "path": "/mnt/data3/wpy/830mix_skill1234_demo5_handcmd_lag1_vlm_cache_h32_b32_ddp8_e2_pv0.95_resume16k_20260909_011924/phi0_student_step018844_optim.pt",
+      "name": "phi0_student_step018844_optim.pt",
+      "size": 735069857,
+      "mtime": 1789368768
+    },
+    {
+      "path": "/mnt/data3/wpy/830mix_skill1234_demo5_handcmd_lag1_vlm_cache_h32_b32_ddp8_e2_pv0.95_resume16k_20260909_011924/phi0_student_step028266.pt",
+      "name": "phi0_student_step028266.pt",
+      "size": 367538493,
+      "mtime": 1789370076
+    },
+    {
+      "path": "/mnt/data3/wpy/830mix_skill1234_demo5_handcmd_lag1_vlm_cache_h32_b32_ddp8_e2_pv0.95_resume16k_20260909_011924/phi0_student_step028266_optim.pt",
+      "name": "phi0_student_step028266_optim.pt",
+      "size": 735069857,
+      "mtime": 1789370076
+    },
+    {
+      "path": "/mnt/data3/wpy/830mix_skill1234_demo5_handcmd_lag1_vlm_cache_h32_b32_ddp8_e2_pv0.95_resume16k_20260909_011924/phi0_student_step037688.pt",
+      "name": "phi0_student_step037688.pt",
+      "size": 367538493,
+      "mtime": 1789371387
+    },
+    {
+      "path": "/mnt/data3/wpy/830mix_skill1234_demo5_handcmd_lag1_vlm_cache_h32_b32_ddp8_e2_pv0.95_resume16k_20260909_011924/phi0_student_step037688_optim.pt",
+      "name": "phi0_student_step037688_optim.pt",
+      "size": 735069857,
+      "mtime": 1789371388
+    }
+  ]
+}

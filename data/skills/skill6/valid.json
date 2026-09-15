@@ -1,0 +1,17 @@
+{
+  "labels_path": "/mnt/data2/wpy/workspace/830demo/skill6/skill6.json",
+  "sessions": {
+    "2026-09-09-14-39-23": {
+      "valid_count": 15
+    },
+    "2026-09-09-15-06-32": {
+      "valid_count": 23
+    },
+    "2026-09-09-15-40-10": {
+      "valid_count": 26
+    },
+    "2026-09-09-16-31-40": {
+      "valid_count": 36
+    }
+  }
+}

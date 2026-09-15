@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "purpose": "Dex3 qpos data augmentation: make each recorded peak closure reach 98% of the Unitree SDK design joint limit, while retaining a 2% mechanical-limit reserve.",
+  "dataset": "../830demo_skill2_pick_toy_unified copy_try",
+  "source_stats": "../830demo_skill2_pick_toy_unified copy_try/meta/stats.json",
+  "units": "radians",
+  "unified_slice": [346, 360],
+  "semantic_order": [
+    "left_index_0", "left_index_1", "left_middle_0", "left_middle_1", "left_thumb_0", "left_thumb_1", "left_thumb_2",
+    "right_index_0", "right_index_1", "right_middle_0", "right_middle_1", "right_thumb_0", "right_thumb_1", "right_thumb_2"
+  ],
+  "derivation": {
+    "official_sdk_limit_source": "https://github.com/unitreerobotics/unitree_sdk2/blob/main/example/g1/dex3/g1_dex3_example.cpp",
+    "target_limit_fraction": 0.98,
+    "formula": "For a closing component c = max(0, closure_sign * (q - q_open)), q_scaled = clip(q + closure_sign * (multiplier - 1) * c, q_lower, q_upper). q_open is 0 for all scaled joints.",
+    "important": "Do not multiply the complete 14-D vector. The small opposite-direction encoder noise in the data must not be amplified. Apply the per-joint hard clip after scaling."
+  },
+  "joints": [
+    {"unified_index": 346, "name": "left_index_0",  "closure_sign": -1, "q_open": 0.0, "q_lower": -1.57, "q_upper": 0.0,  "observed_closure_q": -1.332786798, "target_closure_q": -1.5386, "multiplier": 1.154423199},
+    {"unified_index": 347, "name": "left_index_1",  "closure_sign": -1, "q_open": 0.0, "q_lower": -1.75, "q_upper": 0.0,  "observed_closure_q": -1.486042500, "target_closure_q": -1.7150, "multiplier": 1.154071973},
+    {"unified_index": 348, "name": "left_middle_0", "closure_sign": -1, "q_open": 0.0, "q_lower": -1.57, "q_upper": 0.0,  "observed_closure_q": -1.375747204, "target_closure_q": -1.5386, "multiplier": 1.118374070},
+    {"unified_index": 349, "name": "left_middle_1", "closure_sign": -1, "q_open": 0.0, "q_lower": -1.75, "q_upper": 0.0,  "observed_closure_q": -1.519938469, "target_closure_q": -1.7150, "multiplier": 1.128335150},
+    {"unified_index": 350, "name": "left_thumb_0",  "closure_sign": 0,  "q_open": 0.0, "q_lower": -1.05, "q_upper": 1.05,  "observed_closure_q": null,         "target_closure_q": null,    "multiplier": 1.0, "preserve": true, "note": "Thumb lateral/opposition axis; not a pure closing DOF."},
+    {"unified_index": 351, "name": "left_thumb_1",  "closure_sign": 1,  "q_open": 0.0, "q_lower": -0.724,"q_upper": 1.05,  "observed_closure_q": 0.890282989, "target_closure_q": 1.0290, "multiplier": 1.155812268},
+    {"unified_index": 352, "name": "left_thumb_2",  "closure_sign": 1,  "q_open": 0.0, "q_lower": 0.0,   "q_upper": 1.75,  "observed_closure_q": 1.470678329, "target_closure_q": 1.7150, "multiplier": 1.166128558},
+    {"unified_index": 353, "name": "right_index_0", "closure_sign": 1,  "q_open": 0.0, "q_lower": 0.0,   "q_upper": 1.57,  "observed_closure_q": 1.345103145, "target_closure_q": 1.5386, "multiplier": 1.143852801},
+    {"unified_index": 354, "name": "right_index_1", "closure_sign": 1,  "q_open": 0.0, "q_lower": 0.0,   "q_upper": 1.75,  "observed_closure_q": 1.522047877, "target_closure_q": 1.7150, "multiplier": 1.126771388},
+    {"unified_index": 355, "name": "right_middle_0","closure_sign": 1,  "q_open": 0.0, "q_lower": 0.0,   "q_upper": 1.57,  "observed_closure_q": 1.439280272, "target_closure_q": 1.5386, "multiplier": 1.069006524},
+    {"unified_index": 356, "name": "right_middle_1","closure_sign": 1,  "q_open": 0.0, "q_lower": 0.0,   "q_upper": 1.75,  "observed_closure_q": 1.552452326, "target_closure_q": 1.7150, "multiplier": 1.104703811},
+    {"unified_index": 357, "name": "right_thumb_0", "closure_sign": 0,  "q_open": 0.0, "q_lower": -1.05, "q_upper": 1.05,  "observed_closure_q": null,         "target_closure_q": null,    "multiplier": 1.0, "preserve": true, "note": "Thumb lateral/opposition axis; not a pure closing DOF."},
+    {"unified_index": 358, "name": "right_thumb_1", "closure_sign": -1, "q_open": 0.0, "q_lower": -1.05, "q_upper": 0.742, "observed_closure_q": -0.897667468, "target_closure_q": -1.0290,"multiplier": 1.146304213},
+    {"unified_index": 359, "name": "right_thumb_2", "closure_sign": -1, "q_open": 0.0, "q_lower": -1.75, "q_upper": 0.0,   "observed_closure_q": -1.477081656, "target_closure_q": -1.7150,"multiplier": 1.161073250}
+  ],
+  "hardware_safety": {
+    "apply_hard_position_clip": true,
+    "require_slew_rate_limit_at_replay": true,
+    "require_valid_fresh_hand_feedback_at_replay": true,
+    "do_not_treat_this_file_as_a_hardware_controller_gain_config": true
+  }
+}

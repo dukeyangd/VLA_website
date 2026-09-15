@@ -1,0 +1,378 @@
+{
+  "version": 4,
+  "source": "cluster_0:/mnt/data2/wpy/workspace/Phi_0_wpy/tools/train",
+  "phi0_root_remote": "/mnt/data2/wpy/workspace/Phi_0_wpy",
+  "phi0_root_local_candidates": [
+    "/home/neotix/noetix/experiment/Phi_0_wpy",
+    "/home/neotix/noetix/humanoid_data_studio/phi0_pipeline"
+  ],
+  "script": "tools/train/run_online_vlm_mix_distill.sh",
+  "launcher": "tools/train/run_online_vlm_mix_distill.sh",
+  "notes": [
+    "Studio always launches run_online_vlm_mix_distill.sh; historical run_830_* wrappers are recipe docs only.",
+    "Per-skill adaptation uses train_profile (+ optional skill fixed_flags / hand_obs / lag / rtc).",
+    "Unmatched skills default to vision_teleop; never silently fall back to skill1 walk RTC.",
+    "Train REF must be packed *_unified with vision allowlist + VLM frame cache.",
+    "Mix training requires an existing 830mix_*_unified pack (not on-the-fly merge of skill cards).",
+    "STUDENT_CKPT default empty (train action expert from scratch). Out dir base /mnt/data3/wpy.",
+    "skill3 wrapper REF name 830demo_skill3_place_basket_unified is missing on nvme; use 830demo_skill3_pico_place_basket_unified."
+  ],
+  "default_init_student_ckpt": "",
+  "fixed_flags": {
+    "PHI0_USE_VLM_FRAME_LATENT_CACHE": "1",
+    "PHI0_VLM_FRAME_CACHE_SKIP_VIDEO": "1",
+    "PHI0_MODALITY_SKIP_SIM_VIDEO": "1",
+    "PHI0_VISION_DATALOADER": "1",
+    "USE_VLM": "0",
+    "PHI0_RESIDENT_CACHE_FORCE": "1",
+    "PHI0_DISTILL_NO_BARRIER": "1",
+    "TEACHER_Z_SOURCE": "disk",
+    "W_HAND": "1",
+    "W_Q_HEAD": "0",
+    "STUDENT_DRIVE": "1",
+    "DAGGER_BETA_START": "0.8",
+    "DAGGER_BETA_END": "0.8",
+    "DEPLOY_POLICY_DIR": "sonic_v1_1",
+    "PHI0_HAND_MODE": "dex3",
+    "PHI0_NEWTON_REVO2": "0",
+    "PHI0_CKPT_STEP_KEEP": "3"
+  },
+  "tasks": [
+    {
+      "id": "skill1_walk",
+      "title": "走向黑箱",
+      "skill": "skill1_walk",
+      "badge": "WALK",
+      "subtitle": "handcmd lag1 + RTC · vision_dl + dual VLM frame cache",
+      "description": "通用 launcher + vision_teleop_handcmd_rtc；默认 e10 / 8GPU。",
+      "accent": "#2f6b4f",
+      "script": "tools/train/run_online_vlm_mix_distill.sh",
+      "train_profile": "vision_teleop_handcmd_rtc",
+      "legacy_wrapper": "tools/train/run_830_skill1_walk_vlm_cache_distill.sh",
+      "default_prompt": "机器人朝黑箱子走过去。",
+      "datasets": [
+        {
+          "id": "remote_830demo_ws",
+          "label": "云端 830demo_skill1_walk_unified（ws/NVMe）",
+          "path": "/mnt/data2/wpy/workspace/local_nvme/datasets/830/830demo_skill1_walk_unified",
+          "remote_path": "/mnt/data2/wpy/workspace/local_nvme/datasets/830/830demo_skill1_walk_unified"
+        },
+        {
+          "id": "remote_830demo_efs",
+          "label": "云端 830demo_skill1_walk_unified（EFS）",
+          "path": "/mnt/data2/wpy/workspace/Phi0_Dataset/Phi0-MixCorpus/datasets/830/830demo_skill1_walk_unified",
+          "remote_path": "/mnt/data2/wpy/workspace/Phi0_Dataset/Phi0-MixCorpus/datasets/830/830demo_skill1_walk_unified"
+        },
+        {
+          "id": "remote_walk_legacy",
+          "label": "云端 skill_walk_to_black_box_new_unified（旧）",
+          "path": "/mnt/data2/wpy/workspace/Phi0_Dataset/Phi0-MixCorpus/datasets/830/skill_walk_to_black_box_new_unified",
+          "remote_path": "/mnt/data2/wpy/workspace/Phi0_Dataset/Phi0-MixCorpus/datasets/830/skill_walk_to_black_box_new_unified"
+        }
+      ],
+      "defaults": {
+        "ngpu": 8,
+        "num_envs": 32,
+        "horizon": 32,
+        "epochs": 4,
+        "extra_steps": 0,
+        "lr": "1e-4",
+        "lr_scheduler": "cosine",
+        "warmup_ratio": 0.05,
+        "warmup_steps": 0,
+        "ckpt_every": 0,
+        "hand_mode": "dex3",
+        "deploy_policy": "sonic_v1_1",
+        "hand_obs": "commanded",
+        "cuda_devices": "0,1,2,3,4,5,6,7",
+        "ckpt_every_epoch": 1
+      }
+    },
+    {
+      "id": "skill2_pico",
+      "title": "抓取搬运篮子",
+      "skill": "skill2_pico",
+      "badge": "PICO",
+      "subtitle": "纯 nosim · vision_dl + frame cache · REF=pure2_unified",
+      "description": "通用 launcher + vision_teleop；默认 e10 / 8GPU。",
+      "accent": "#3d5a80",
+      "script": "tools/train/run_online_vlm_mix_distill.sh",
+      "train_profile": "vision_teleop",
+      "legacy_wrapper": "tools/train/run_830_skill2_pico_vlm_cache_distill.sh",
+      "default_prompt": "走到桌面，抓取篮中玩具并搬运篮子到另一区域。",
+      "datasets": [
+        {
+          "id": "remote_pure2_unified",
+          "label": "云端 830demo_skill2_pico_pick_and_place_pure2_unified",
+          "path": "/mnt/data2/wpy/workspace/local_nvme/datasets/830/830demo_skill2_pico_pick_and_place_pure2_unified",
+          "remote_path": "/mnt/data2/wpy/workspace/local_nvme/datasets/830/830demo_skill2_pico_pick_and_place_pure2_unified"
+        },
+        {
+          "id": "remote_pico",
+          "label": "云端 skill_2_pico_new826_unified（旧）",
+          "path": "/mnt/data2/wpy/workspace/local_nvme/datasets/830/skill_2_pico_new826_unified",
+          "remote_path": "/mnt/data2/wpy/workspace/local_nvme/datasets/830/skill_2_pico_new826_unified"
+        },
+        {
+          "id": "remote_pico_efs",
+          "label": "云端 skill_2_pico_new826_unified（EFS）",
+          "path": "/mnt/data2/wpy/workspace/Phi0_Dataset/Phi0-MixCorpus/datasets/830/skill_2_pico_new826_unified",
+          "remote_path": "/mnt/data2/wpy/workspace/Phi0_Dataset/Phi0-MixCorpus/datasets/830/skill_2_pico_new826_unified"
+        }
+      ],
+      "defaults": {
+        "ngpu": 8,
+        "num_envs": 32,
+        "horizon": 32,
+        "epochs": 4,
+        "extra_steps": 0,
+        "lr": "1e-4",
+        "lr_scheduler": "cosine",
+        "warmup_ratio": 0.05,
+        "warmup_steps": 0,
+        "ckpt_every": 0,
+        "hand_mode": "dex3",
+        "deploy_policy": "sonic_v1_1",
+        "hand_obs": "commanded",
+        "cuda_devices": "0,1,2,3,4,5,6,7",
+        "ckpt_every_epoch": 1
+      }
+    },
+    {
+      "id": "skill2_pico_pick_toy",
+      "title": "抓玩具放篮",
+      "skill": "skill2_pico_pick_toy",
+      "badge": "TOY",
+      "subtitle": "handcmd lag1 · 通用 launcher",
+      "description": "vision_teleop_handcmd；推理侧建议 hand_obs=commanded。",
+      "accent": "#7a5c3a",
+      "script": "tools/train/run_online_vlm_mix_distill.sh",
+      "train_profile": "vision_teleop_handcmd",
+      "legacy_wrapper": "tools/train/run_830_skill2_pico_pick_toy_vlm_cache_distill.sh",
+      "default_prompt": "抓起黄色玩具放到篮子里。",
+      "datasets": [
+        {
+          "id": "remote_pick_toy_ws",
+          "label": "云端 830demo_skill2_pico_pick_toy_unified",
+          "path": "/mnt/data2/wpy/workspace/local_nvme/datasets/830/830demo_skill2_pico_pick_toy_unified",
+          "remote_path": "/mnt/data2/wpy/workspace/local_nvme/datasets/830/830demo_skill2_pico_pick_toy_unified"
+        },
+        {
+          "id": "remote_pick_toy_nvme",
+          "label": "云端 pick_toy（/mnt/data3）",
+          "path": "/mnt/data3/wpy/datasets/830/830demo_skill2_pico_pick_toy_unified",
+          "remote_path": "/mnt/data3/wpy/datasets/830/830demo_skill2_pico_pick_toy_unified"
+        }
+      ],
+      "defaults": {
+        "ngpu": 8,
+        "num_envs": 32,
+        "horizon": 32,
+        "epochs": 4,
+        "extra_steps": 0,
+        "lr": "1e-4",
+        "lr_scheduler": "cosine",
+        "warmup_ratio": 0.05,
+        "warmup_steps": 0,
+        "ckpt_every": 0,
+        "hand_mode": "dex3",
+        "deploy_policy": "sonic_v1_1",
+        "hand_obs": "commanded",
+        "cuda_devices": "0,1,2,3,4,5,6,7",
+        "ckpt_every_epoch": 1
+      }
+    },
+    {
+      "id": "skill3_place_basket",
+      "title": "放置篮子",
+      "skill": "skill3_place_basket",
+      "badge": "PLACE",
+      "subtitle": "纯 nosim · vision_teleop",
+      "description": "REF=830demo_skill3_pico_place_basket_unified。",
+      "accent": "#5a4a7a",
+      "script": "tools/train/run_online_vlm_mix_distill.sh",
+      "train_profile": "vision_teleop",
+      "legacy_wrapper": "tools/train/run_830_skill3_place_basket_vlm_cache_distill.sh",
+      "default_prompt": "把篮子放到指定位置。",
+      "datasets": [
+        {
+          "id": "remote_skill3_pico_ws",
+          "label": "云端 830demo_skill3_pico_place_basket_unified",
+          "path": "/mnt/data2/wpy/workspace/local_nvme/datasets/830/830demo_skill3_pico_place_basket_unified",
+          "remote_path": "/mnt/data2/wpy/workspace/local_nvme/datasets/830/830demo_skill3_pico_place_basket_unified"
+        },
+        {
+          "id": "remote_skill3_pico_nvme",
+          "label": "云端 skill3 pico（/mnt/data3）",
+          "path": "/mnt/data3/wpy/datasets/830/830demo_skill3_pico_place_basket_unified",
+          "remote_path": "/mnt/data3/wpy/datasets/830/830demo_skill3_pico_place_basket_unified"
+        }
+      ],
+      "defaults": {
+        "ngpu": 8,
+        "num_envs": 32,
+        "horizon": 32,
+        "epochs": 4,
+        "extra_steps": 0,
+        "lr": "1e-4",
+        "lr_scheduler": "cosine",
+        "warmup_ratio": 0.05,
+        "warmup_steps": 0,
+        "ckpt_every": 0,
+        "hand_mode": "dex3",
+        "deploy_policy": "sonic_v1_1",
+        "hand_obs": "commanded",
+        "cuda_devices": "0,1,2,3,4,5,6,7",
+        "ckpt_every_epoch": 1
+      }
+    },
+    {
+      "id": "skill4",
+      "title": "插花 / Put the flower",
+      "skill": "skill4",
+      "badge": "FLOWER",
+      "subtitle": "vision_teleop · 需单技能 flower *_unified",
+      "description": "不要直接训 830mix_skill1234 包；单技能请先 pack flower unified，混训请用混合训练卡片。",
+      "accent": "#8b5a6b",
+      "script": "tools/train/run_online_vlm_mix_distill.sh",
+      "train_profile": "vision_teleop",
+      "default_prompt": "把花放到花瓶里。",
+      "datasets": [],
+      "defaults": {
+        "ngpu": 8,
+        "num_envs": 32,
+        "horizon": 32,
+        "epochs": 4,
+        "extra_steps": 0,
+        "lr": "1e-4",
+        "lr_scheduler": "cosine",
+        "warmup_ratio": 0.05,
+        "warmup_steps": 0,
+        "ckpt_every": 0,
+        "hand_mode": "dex3",
+        "deploy_policy": "sonic_v1_1",
+        "hand_obs": "commanded",
+        "cuda_devices": "0,1,2,3,4,5,6,7",
+        "ckpt_every_epoch": 1
+      }
+    },
+    {
+      "id": "skill6",
+      "title": "Skill6",
+      "skill": "skill6",
+      "badge": "SKILL6",
+      "subtitle": "vision_teleop · 需先 pack *_unified + VLM cache",
+      "description": "当前仅有 raw session 时无法开训；请 pack 后再挂载 unified。",
+      "accent": "#4a6a5a",
+      "script": "tools/train/run_online_vlm_mix_distill.sh",
+      "train_profile": "vision_teleop",
+      "default_prompt": "",
+      "datasets": [],
+      "defaults": {
+        "ngpu": 8,
+        "num_envs": 32,
+        "horizon": 32,
+        "epochs": 4,
+        "extra_steps": 0,
+        "lr": "1e-4",
+        "lr_scheduler": "cosine",
+        "warmup_ratio": 0.05,
+        "warmup_steps": 0,
+        "ckpt_every": 0,
+        "hand_mode": "dex3",
+        "deploy_policy": "sonic_v1_1",
+        "hand_obs": "commanded",
+        "cuda_devices": "0,1,2,3,4,5,6,7",
+        "ckpt_every_epoch": 1
+      }
+    },
+    {
+      "id": "830mix_skill123_demo5",
+      "title": "混训 s1+s2+s3+demo5",
+      "skill": "mix",
+      "badge": "MIX",
+      "subtitle": "90% vision_dl + 10% Isaac text · handcmd+RTC",
+      "description": "需先跑 run_830mix_skill123_demo5_pipeline.sh；通用 launcher + mix_vision_isaac。",
+      "accent": "#4a6fa5",
+      "script": "tools/train/run_online_vlm_mix_distill.sh",
+      "train_profile": "mix_vision_isaac",
+      "legacy_wrapper": "tools/train/run_830mix_skill123_demo5_vlm_cache_distill.sh",
+      "default_prompt": "",
+      "datasets": [
+        {
+          "id": "remote_mix_ws",
+          "label": "云端 830mix_skill123_demo5_unified（local_nvme）",
+          "path": "/mnt/data2/wpy/workspace/local_nvme/datasets/830/830mix_skill123_demo5_unified",
+          "remote_path": "/mnt/data2/wpy/workspace/local_nvme/datasets/830/830mix_skill123_demo5_unified"
+        },
+        {
+          "id": "remote_mix_data3",
+          "label": "云端 830mix（/mnt/data3，可能缺失）",
+          "path": "/mnt/data3/wpy/datasets/830/830mix_skill123_demo5_unified",
+          "remote_path": "/mnt/data3/wpy/datasets/830/830mix_skill123_demo5_unified"
+        }
+      ],
+      "defaults": {
+        "ngpu": 8,
+        "num_envs": 32,
+        "horizon": 32,
+        "epochs": 4,
+        "extra_steps": 0,
+        "lr": "1e-4",
+        "lr_scheduler": "cosine",
+        "warmup_ratio": 0.05,
+        "warmup_steps": 0,
+        "ckpt_every": 0,
+        "hand_mode": "dex3",
+        "deploy_policy": "sonic_v1_1",
+        "hand_obs": "commanded",
+        "cuda_devices": "0,1,2,3,4,5,6,7",
+        "ckpt_every_epoch": 1
+      }
+    },
+    {
+      "id": "830mix_skill1234_demo5",
+      "title": "混训 s1+s2+s3+s4+demo5",
+      "skill": "mix",
+      "badge": "MIX4",
+      "subtitle": "含 skill4 flower · 需 1234 pipeline pack",
+      "description": "需先跑 tools/data/run_830mix_skill1234_demo5_pipeline.sh；通用 launcher + mix_vision_isaac。",
+      "accent": "#3d5a80",
+      "script": "tools/train/run_online_vlm_mix_distill.sh",
+      "train_profile": "mix_vision_isaac",
+      "legacy_wrapper": "tools/train/run_830mix_skill123_demo5_vlm_cache_distill.sh",
+      "default_prompt": "",
+      "datasets": [
+        {
+          "id": "remote_mix1234_ws",
+          "label": "云端 830mix_skill1234_demo5_unified（local_nvme）",
+          "path": "/mnt/data2/wpy/workspace/local_nvme/datasets/830/830mix_skill1234_demo5_unified",
+          "remote_path": "/mnt/data2/wpy/workspace/local_nvme/datasets/830/830mix_skill1234_demo5_unified"
+        },
+        {
+          "id": "remote_mix1234_data3",
+          "label": "云端 830mix1234（/mnt/data3）",
+          "path": "/mnt/data3/wpy/datasets/830/830mix_skill1234_demo5_unified",
+          "remote_path": "/mnt/data3/wpy/datasets/830/830mix_skill1234_demo5_unified"
+        }
+      ],
+      "defaults": {
+        "ngpu": 8,
+        "num_envs": 32,
+        "horizon": 32,
+        "epochs": 4,
+        "extra_steps": 0,
+        "lr": "1e-4",
+        "lr_scheduler": "cosine",
+        "warmup_ratio": 0.05,
+        "warmup_steps": 0,
+        "ckpt_every": 0,
+        "hand_mode": "dex3",
+        "deploy_policy": "sonic_v1_1",
+        "hand_obs": "commanded",
+        "cuda_devices": "0,1,2,3,4,5,6,7",
+        "ckpt_every_epoch": 1
+      }
+    }
+  ]
+}

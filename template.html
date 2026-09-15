@@ -1,0 +1,759 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Choose Your Product</title>
+
+<style>
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    html, body {
+        width: 100%;
+        height: 100%;
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display",
+                     "Helvetica Neue", Arial, sans-serif;
+        background: #f5f5f7;
+        color: #1d1d1f;
+        overflow: hidden;
+    }
+
+    nav {
+        height: 56px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 6%;
+        background: rgba(255,255,255,.8);
+        backdrop-filter: blur(20px);
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 100;
+        border-bottom: 1px solid rgba(0,0,0,.08);
+    }
+
+    .logo {
+        font-size: 20px;
+        font-weight: 600;
+    }
+
+    .nav-right {
+        font-size: 14px;
+        color: #666;
+    }
+
+    .page {
+        width: 100%;
+        height: 100vh;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 80px 8% 40px;
+        position: relative;
+    }
+
+    .page.active {
+        display: flex;
+        animation: fadeIn .55s ease;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(15px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .content {
+        width: min(900px, 100%);
+    }
+
+    .eyebrow {
+        font-size: 15px;
+        color: #6e6e73;
+        margin-bottom: 15px;
+    }
+
+    h1 {
+        font-size: clamp(42px, 7vw, 82px);
+        letter-spacing: -4px;
+        line-height: .95;
+        margin-bottom: 20px;
+        font-weight: 700;
+    }
+
+    .subtitle {
+        font-size: clamp(18px, 2.5vw, 25px);
+        color: #6e6e73;
+        margin-bottom: 45px;
+    }
+
+    /* Product visual */
+
+    .product {
+        width: 280px;
+        height: 170px;
+        margin: 0 auto 45px;
+        border-radius: 35px;
+        background: linear-gradient(145deg, #d8d8dc, #888890);
+        box-shadow:
+            0 35px 60px rgba(0,0,0,.22),
+            inset 0 2px 2px rgba(255,255,255,.7);
+        transform: perspective(700px) rotateX(8deg) rotateY(-10deg);
+        transition: all .5s ease;
+        position: relative;
+    }
+
+    .product::before {
+        content: "";
+        position: absolute;
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: #111;
+        top: 25px;
+        left: 35px;
+        box-shadow:
+            55px 0 0 #111,
+            27px 48px 0 #111;
+    }
+
+    .product::after {
+        content: "";
+        position: absolute;
+        inset: 8px;
+        border-radius: 29px;
+        border: 1px solid rgba(255,255,255,.45);
+    }
+
+    /* Slider */
+
+    .slider-area {
+        max-width: 650px;
+        margin: 0 auto;
+    }
+
+    .value {
+        font-size: 27px;
+        font-weight: 600;
+        margin-bottom: 25px;
+    }
+
+    input[type="range"] {
+        appearance: none;
+        width: 100%;
+        height: 5px;
+        border-radius: 10px;
+        background: linear-gradient(
+            to right,
+            #0071e3 0%,
+            #0071e3 50%,
+            #d2d2d7 50%,
+            #d2d2d7 100%
+        );
+        outline: none;
+        cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+        appearance: none;
+        width: 30px;
+        height: 30px;
+        background: white;
+        border-radius: 50%;
+        box-shadow: 0 2px 12px rgba(0,0,0,.25);
+        border: 1px solid rgba(0,0,0,.08);
+    }
+
+    .labels {
+        display: flex;
+        justify-content: space-between;
+        color: #86868b;
+        font-size: 14px;
+        margin-top: 15px;
+    }
+
+    /* Buttons */
+
+    .controls {
+        position: absolute;
+        bottom: 35px;
+        left: 0;
+        right: 0;
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+    }
+
+    button {
+        border: none;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 500;
+        padding: 12px 25px;
+        border-radius: 25px;
+        transition: .2s ease;
+    }
+
+    .back {
+        background: transparent;
+        color: #0071e3;
+    }
+
+    .back:hover {
+        background: rgba(0,113,227,.08);
+    }
+
+    .next {
+        background: #0071e3;
+        color: white;
+    }
+
+    .next:hover {
+        background: #0077ed;
+        transform: scale(1.03);
+    }
+
+    /* Final page */
+
+    .summary {
+        max-width: 600px;
+        margin: 0 auto;
+        background: white;
+        padding: 35px;
+        border-radius: 30px;
+        box-shadow: 0 20px 60px rgba(0,0,0,.08);
+        text-align: left;
+    }
+
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 13px 0;
+        border-bottom: 1px solid #eee;
+        color: #555;
+    }
+
+    .summary-row strong {
+        color: #1d1d1f;
+    }
+
+    .total {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 25px;
+        font-size: 26px;
+        font-weight: 700;
+    }
+
+    .buy {
+        width: 100%;
+        margin-top: 25px;
+        background: #0071e3;
+        color: white;
+        padding: 15px;
+        border-radius: 30px;
+    }
+
+    /* Progress */
+
+    .progress {
+        position: fixed;
+        bottom: 15px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 7px;
+        z-index: 200;
+    }
+
+    .dot {
+        width: 7px;
+        height: 7px;
+        background: #c7c7cc;
+        border-radius: 50%;
+        transition: .3s;
+    }
+
+    .dot.active {
+        width: 22px;
+        border-radius: 10px;
+        background: #0071e3;
+    }
+
+    @media(max-width:600px) {
+        h1 {
+            letter-spacing: -2px;
+        }
+
+        .product {
+            width: 230px;
+            height: 140px;
+        }
+
+        .summary {
+            padding: 25px;
+        }
+    }
+</style>
+</head>
+
+<body>
+
+<nav>
+    <div class="logo">Product</div>
+    <div class="nav-right">Configure yours</div>
+</nav>
+
+<!-- PAGE 1 -->
+<section class="page active">
+    <div class="content">
+        <div class="eyebrow">Step 1 of 5</div>
+        <h1>Pick your finish.</h1>
+        <p class="subtitle">A color that feels like you.</p>
+
+        <div class="product" id="product"></div>
+
+        <div class="slider-area">
+            <div class="value" id="colorValue">Silver</div>
+
+            <input
+                type="range"
+                id="colorSlider"
+                min="0"
+                max="3"
+                value="0"
+                step="1"
+            >
+
+            <div class="labels">
+                <span>Silver</span>
+                <span>Blue</span>
+                <span>Gold</span>
+                <span>Black</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="next" onclick="nextPage()">Continue</button>
+    </div>
+</section>
+
+<!-- PAGE 2 -->
+<section class="page">
+    <div class="content">
+        <div class="eyebrow">Step 2 of 5</div>
+        <h1>Make it yours.</h1>
+        <p class="subtitle">Choose the size that fits your world.</p>
+
+        <div class="product" id="sizeProduct"></div>
+
+        <div class="slider-area">
+            <div class="value" id="sizeValue">Standard</div>
+
+            <input
+                type="range"
+                id="sizeSlider"
+                min="0"
+                max="2"
+                value="1"
+                step="1"
+            >
+
+            <div class="labels">
+                <span>Compact</span>
+                <span>Standard</span>
+                <span>Large</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="back" onclick="prevPage()">Back</button>
+        <button class="next" onclick="nextPage()">Continue</button>
+    </div>
+</section>
+
+<!-- PAGE 3 -->
+<section class="page">
+    <div class="content">
+        <div class="eyebrow">Step 3 of 5</div>
+        <h1>Power when you need it.</h1>
+        <p class="subtitle">Choose the performance that matches your life.</p>
+
+        <div class="product" id="performanceProduct"></div>
+
+        <div class="slider-area">
+            <div class="value" id="performanceValue">Everyday</div>
+
+            <input
+                type="range"
+                id="performanceSlider"
+                min="0"
+                max="2"
+                value="0"
+                step="1"
+            >
+
+            <div class="labels">
+                <span>Everyday</span>
+                <span>Powerful</span>
+                <span>Pro</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="back" onclick="prevPage()">Back</button>
+        <button class="next" onclick="nextPage()">Continue</button>
+    </div>
+</section>
+
+<!-- PAGE 4 -->
+<section class="page">
+    <div class="content">
+        <div class="eyebrow">Step 4 of 5</div>
+        <h1>More space.</h1>
+        <p class="subtitle">Bring everything you love with you.</p>
+
+        <div class="product"></div>
+
+        <div class="slider-area">
+            <div class="value" id="storageValue">256 GB</div>
+
+            <input
+                type="range"
+                id="storageSlider"
+                min="0"
+                max="3"
+                value="0"
+                step="1"
+            >
+
+            <div class="labels">
+                <span>256 GB</span>
+                <span>512 GB</span>
+                <span>1 TB</span>
+                <span>2 TB</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="back" onclick="prevPage()">Back</button>
+        <button class="next" onclick="nextPage()">Continue</button>
+    </div>
+</section>
+
+<!-- PAGE 5 -->
+<section class="page">
+    <div class="content">
+        <div class="eyebrow">Step 5 of 5</div>
+        <h1>See every detail.</h1>
+        <p class="subtitle">Choose your display experience.</p>
+
+        <div class="product"></div>
+
+        <div class="slider-area">
+            <div class="value" id="displayValue">Standard</div>
+
+            <input
+                type="range"
+                id="displaySlider"
+                min="0"
+                max="2"
+                value="0"
+                step="1"
+            >
+
+            <div class="labels">
+                <span>Standard</span>
+                <span>High Refresh</span>
+                <span>ProMotion</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="back" onclick="prevPage()">Back</button>
+        <button class="next" onclick="nextPage()">Finish</button>
+    </div>
+</section>
+
+<!-- FINAL PAGE -->
+<section class="page">
+    <div class="content">
+        <div class="eyebrow">Your configuration</div>
+        <h1>This is yours.</h1>
+        <p class="subtitle">Everything you chose, in one place.</p>
+
+        <div class="summary">
+
+            <div class="summary-row">
+                <span>Finish</span>
+                <strong id="summaryColor">Silver</strong>
+            </div>
+
+            <div class="summary-row">
+                <span>Size</span>
+                <strong id="summarySize">Standard</strong>
+            </div>
+
+            <div class="summary-row">
+                <span>Performance</span>
+                <strong id="summaryPerformance">Everyday</strong>
+            </div>
+
+            <div class="summary-row">
+                <span>Storage</span>
+                <strong id="summaryStorage">256 GB</strong>
+            </div>
+
+            <div class="summary-row">
+                <span>Display</span>
+                <strong id="summaryDisplay">Standard</strong>
+            </div>
+
+            <div class="total">
+                <span>Total</span>
+                <span id="totalPrice">$1,299</span>
+            </div>
+
+            <button class="buy" onclick="alert('Demo — ready to purchase!')">
+                Buy Now
+            </button>
+
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="back" onclick="prevPage()">Back</button>
+    </div>
+</section>
+
+<div class="progress" id="progress"></div>
+
+<script>
+
+const pages = document.querySelectorAll(".page");
+const progress = document.getElementById("progress");
+
+let currentPage = 0;
+
+const choices = {
+    color: "Silver",
+    size: "Standard",
+    performance: "Everyday",
+    storage: "256 GB",
+    display: "Standard"
+};
+
+const prices = {
+    color: [0, 0, 0, 0],
+    size: [0, 100, 250],
+    performance: [0, 200, 500],
+    storage: [0, 100, 300, 600],
+    display: [0, 100, 250]
+};
+
+/* Progress dots */
+
+for(let i = 0; i < pages.length; i++) {
+    const dot = document.createElement("div");
+    dot.className = "dot";
+    progress.appendChild(dot);
+}
+
+function updateProgress() {
+    document.querySelectorAll(".dot").forEach((dot, i) => {
+        dot.classList.toggle("active", i === currentPage);
+    });
+}
+
+function showPage(index) {
+    pages.forEach(page => page.classList.remove("active"));
+    pages[index].classList.add("active");
+    currentPage = index;
+    updateProgress();
+
+    if(index === pages.length - 1) {
+        updateSummary();
+    }
+}
+
+function nextPage() {
+    if(currentPage < pages.length - 1) {
+        showPage(currentPage + 1);
+    }
+}
+
+function prevPage() {
+    if(currentPage > 0) {
+        showPage(currentPage - 1);
+    }
+}
+
+/* Color */
+
+const colorSlider = document.getElementById("colorSlider");
+
+colorSlider.addEventListener("input", () => {
+
+    const colors = [
+        ["Silver", "linear-gradient(145deg,#e5e5e7,#85858b)"],
+        ["Blue", "linear-gradient(145deg,#a8c7ed,#315b91)"],
+        ["Gold", "linear-gradient(145deg,#f3d9a5,#a97935)"],
+        ["Black", "linear-gradient(145deg,#444,#090909)"]
+    ];
+
+    const selected = colors[colorSlider.value];
+
+    choices.color = selected[0];
+
+    document.getElementById("colorValue").textContent = selected[0];
+    document.getElementById("product").style.background = selected[1];
+
+    updateSlider(colorSlider);
+});
+
+/* Size */
+
+const sizeSlider = document.getElementById("sizeSlider");
+
+sizeSlider.addEventListener("input", () => {
+
+    const sizes = ["Compact", "Standard", "Large"];
+    const scale = [.75, 1, 1.25];
+
+    choices.size = sizes[sizeSlider.value];
+
+    document.getElementById("sizeValue").textContent =
+        choices.size;
+
+    document.getElementById("sizeProduct").style.transform =
+        `perspective(700px) rotateX(8deg) rotateY(-10deg)
+         scale(${scale[sizeSlider.value]})`;
+
+    updateSlider(sizeSlider);
+});
+
+/* Performance */
+
+const performanceSlider =
+    document.getElementById("performanceSlider");
+
+performanceSlider.addEventListener("input", () => {
+
+    const values = ["Everyday", "Powerful", "Pro"];
+
+    choices.performance = values[performanceSlider.value];
+
+    document.getElementById("performanceValue").textContent =
+        choices.performance;
+
+    updateSlider(performanceSlider);
+});
+
+/* Storage */
+
+const storageSlider =
+    document.getElementById("storageSlider");
+
+storageSlider.addEventListener("input", () => {
+
+    const values = ["256 GB", "512 GB", "1 TB", "2 TB"];
+
+    choices.storage = values[storageSlider.value];
+
+    document.getElementById("storageValue").textContent =
+        choices.storage;
+
+    updateSlider(storageSlider);
+});
+
+/* Display */
+
+const displaySlider =
+    document.getElementById("displaySlider");
+
+displaySlider.addEventListener("input", () => {
+
+    const values = ["Standard", "High Refresh", "ProMotion"];
+
+    choices.display = values[displaySlider.value];
+
+    document.getElementById("displayValue").textContent =
+        choices.display;
+
+    updateSlider(displaySlider);
+});
+
+/* Slider progress */
+
+function updateSlider(slider) {
+
+    const percentage =
+        (slider.value - slider.min) /
+        (slider.max - slider.min) * 100;
+
+    slider.style.background =
+        `linear-gradient(
+            to right,
+            #0071e3 0%,
+            #0071e3 ${percentage}%,
+            #d2d2d7 ${percentage}%,
+            #d2d2d7 100%
+        )`;
+}
+
+/* Final summary */
+
+function updateSummary() {
+
+    document.getElementById("summaryColor").textContent =
+        choices.color;
+
+    document.getElementById("summarySize").textContent =
+        choices.size;
+
+    document.getElementById("summaryPerformance").textContent =
+        choices.performance;
+
+    document.getElementById("summaryStorage").textContent =
+        choices.storage;
+
+    document.getElementById("summaryDisplay").textContent =
+        choices.display;
+
+    let price = 1299;
+
+    price += prices.size[sizeSlider.value];
+    price += prices.performance[performanceSlider.value];
+    price += prices.storage[storageSlider.value];
+    price += prices.display[displaySlider.value];
+
+    document.getElementById("totalPrice").textContent =
+        "$" + price.toLocaleString();
+}
+
+updateProgress();
+
+</script>
+
+</body>
+</html>
+```
+

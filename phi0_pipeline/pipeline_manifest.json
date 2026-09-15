@@ -1,0 +1,218 @@
+{
+  "version": 1,
+  "id": "830demo_skill1_walk",
+  "name": "830demo skill1 走向黑箱",
+  "description": "Pack → VLM frame cache (CPU decode) → nosim distill e10 → MuJoCo 闭环推理",
+  "remote_phi0_root": "/mnt/data2/wpy/workspace/Phi_0_wpy",
+  "host_id": "cluster_0",
+  "stages": [
+    {
+      "id": "pack",
+      "order": 1,
+      "title": "Pack unified 512D",
+      "subtitle": "LeRobot → unified + allowlist + NVMe rsync",
+      "script": "tools/data/run_830_skill2_pico_pack_and_cache.sh",
+      "script_local": "phi0_pipeline/tools/data/run_830_skill2_pico_pack_and_cache.sh",
+      "depends_on": [],
+      "skip_flag": "SKIP_PACK=1",
+      "env": {
+        "RAW_ROOT": {
+          "label": "原始数采根目录",
+          "default": "/mnt/data2/wpy/workspace/830demo/skill_1_walk_to_black_box",
+          "required": true,
+          "studio_bind": "task.remote_dir"
+        },
+        "MANIFEST": {
+          "label": "Episode 清单 JSON",
+          "default": "/mnt/data2/wpy/workspace/830demo/skill_1_walk_to_black_box/skill_1.json",
+          "required": true,
+          "studio_bind": "task.manifest_path"
+        },
+        "OUT_DIR": {
+          "label": "Unified 输出目录",
+          "default": "/mnt/data2/wpy/workspace/Phi0_Dataset/Phi0-MixCorpus/datasets/830/830demo_skill1_walk_unified",
+          "required": true
+        },
+        "TASK_PROMPT": {
+          "label": "任务语言 prompt",
+          "default": "机器人朝黑箱子走过去。",
+          "required": true
+        },
+        "NVME_DIR": {
+          "label": "NVMe 数据集路径",
+          "default": "/mnt/data3/wpy/datasets/830/830demo_skill1_walk_unified",
+          "required": true
+        },
+        "WS_LINK": {
+          "label": "Workspace 软链",
+          "default": "/mnt/data2/wpy/workspace/local_nvme/datasets/830/830demo_skill1_walk_unified",
+          "required": true
+        },
+        "LOG_DIR": {
+          "label": "日志目录",
+          "default": "/mnt/data2/wpy/workspace/logs/830demo_skill1_pack_cache_${STAMP}",
+          "required": false
+        }
+      },
+      "outputs": [
+        "${OUT_DIR}/meta/stats.json",
+        "${NVME_DIR}/meta/vision_episode_allowlist.json",
+        "${WS_LINK}"
+      ],
+      "notes": "内嵌 VLM cache 可能因 GPU decode 慢而失败；可只跑 pack+rsync，再单独执行 vlm_cache 阶段。"
+    },
+    {
+      "id": "vlm_cache",
+      "order": 2,
+      "title": "Dual VLM Frame Cache",
+      "subtitle": "8 GPU 分片，CPU decode 双视角 + prompt",
+      "script": "tools/data/run_cache_dual_vlm_frame_latents_8gpu.sh",
+      "script_local": "phi0_pipeline/tools/data/run_cache_dual_vlm_frame_latents_8gpu.sh",
+      "depends_on": ["pack"],
+      "env": {
+        "DATASET_ROOT": {
+          "label": "数据集根目录（NVMe）",
+          "default": "/mnt/data3/wpy/datasets/830/830demo_skill1_walk_unified",
+          "required": true,
+          "from_stage": "pack.NVME_DIR"
+        },
+        "PROMPT": {
+          "label": "VLM prompt",
+          "default": "机器人朝黑箱子走过去。",
+          "required": true,
+          "from_stage": "pack.TASK_PROMPT"
+        },
+        "BATCH_SIZE": { "label": "Encode batch", "default": "32", "type": "number" },
+        "DECODE_DEVICE": { "label": "视频解码设备", "default": "cpu", "options": ["cpu", "cuda"] },
+        "DECODE_WORKERS": { "label": "Decode workers", "default": "0", "type": "number" },
+        "DECODE_BATCH": { "label": "Decode batch", "default": "64", "type": "number" },
+        "OMP_NUM_THREADS": { "label": "OMP threads", "default": "4", "type": "number" },
+        "MKL_NUM_THREADS": { "label": "MKL threads", "default": "4", "type": "number" },
+        "TORCH_NUM_THREADS": { "label": "Torch threads", "default": "4", "type": "number" },
+        "RESUME": { "label": "断点续跑", "default": "1", "type": "boolean" },
+        "LOG_DIR": {
+          "label": "日志目录",
+          "default": "/mnt/data2/wpy/workspace/logs/830demo_skill1_vlm_cache_${STAMP}",
+          "required": false
+        }
+      },
+      "outputs": [
+        "${DATASET_ROOT}/meta/vlm_frame_latents_qwen3vl_dual/meta.json"
+      ],
+      "notes": "830 demo 使用 DECODE_DEVICE=cpu 成功；GPU decode 在 NFS 上过慢。"
+    },
+    {
+      "id": "train_e10",
+      "order": 3,
+      "title": "Nosim 蒸馏训练 (e10)",
+      "subtitle": "vision_dl + frame cache，8×GPU DDP",
+      "script": "tools/train/run_830_walk_blackbox_vlm_cache_distill.sh",
+      "script_local": "phi0_pipeline/tools/train/run_830_walk_blackbox_vlm_cache_distill.sh",
+      "depends_on": ["vlm_cache"],
+      "preflight_checks": [
+        "${REF_ROOT}/meta/stats.json",
+        "${REF_ROOT}/meta/vision_episode_allowlist.json",
+        "${REF_ROOT}/meta/vlm_frame_latents_qwen3vl_dual/meta.json"
+      ],
+      "env": {
+        "REF_ROOT": {
+          "label": "训练数据根（ws symlink）",
+          "default": "/mnt/data2/wpy/workspace/local_nvme/datasets/830/830demo_skill1_walk_unified",
+          "required": true,
+          "from_stage": "pack.WS_LINK"
+        },
+        "PHI0_DISTILL_OUT": {
+          "label": "Checkpoint 输出目录",
+          "default": "/mnt/data3/wpy/830demo_skill1_walk_vlm_cache_h32_b32_ddp8_e10_${STAMP}",
+          "required": true
+        },
+        "LOG_FILE": {
+          "label": "训练日志文件",
+          "default": "/mnt/data2/wpy/workspace/Phi_0_wpy/logs/830demo_skill1_walk_vlm_cache_h32_b32_ddp8_${STAMP}.log",
+          "required": false
+        },
+        "STAMP": { "label": "时间戳", "default": "${auto}", "required": false },
+        "NGPU": { "label": "GPU 数量", "default": "8", "type": "number" },
+        "NUM_ENVS": { "label": "每 GPU env 数", "default": "32", "type": "number" },
+        "HORIZON": { "label": "Chunk horizon", "default": "32", "type": "number" },
+        "EPOCHS": { "label": "Epochs", "default": "10", "type": "number" },
+        "DEPLOY_POLICY_DIR": { "label": "Deploy 策略", "default": "sonic_v1_1" },
+        "PHI0_HAND_MODE": { "label": "手型", "default": "dex3" }
+      },
+      "outputs": [
+        "${PHI0_DISTILL_OUT}/phi0_student_last.pt"
+      ],
+      "fixed_flags": {
+        "PHI0_USE_VLM_FRAME_LATENT_CACHE": "1",
+        "PHI0_VLM_FRAME_CACHE_SKIP_VIDEO": "1",
+        "PHI0_VISION_DL_ONLY": "1",
+        "VISION_ONLY": "1",
+        "TEACHER_Z_SOURCE": "disk"
+      },
+      "notes": "默认 nosim：不启动 Isaac Sim，纯 DataLoader + frame cache。e10 ≈ 15290 step。"
+    },
+    {
+      "id": "train_resume50k",
+      "order": 3,
+      "optional": true,
+      "title": "继续训练 (+50k step)",
+      "subtitle": "从 e10 checkpoint 加训，非最初 e10 流程",
+      "script": "tools/train/run_830_walk_blackbox_vlm_cache_distill.sh",
+      "depends_on": ["train_e10"],
+      "env": {
+        "STUDENT_CKPT": { "label": "起始 checkpoint", "required": true, "from_stage": "train_e10.PHI0_DISTILL_OUT/phi0_student_last.pt" },
+        "EXTRA_STEPS": { "label": "额外步数", "default": "50000", "type": "number" },
+        "REF_ROOT": { "label": "训练数据根", "from_stage": "pack.WS_LINK" },
+        "PHI0_DISTILL_OUT": { "label": "新输出目录", "default": "/mnt/data3/wpy/830demo_skill1_walk_vlm_cache_h32_b32_ddp8_resume50k_${STAMP}" },
+        "CKPT_EVERY": { "label": "存 ckpt 间隔", "default": "2000", "type": "number" },
+        "PHI0_CKPT_STEP_KEEP": { "label": "保留 ckpt 数", "default": "3", "type": "number" }
+      }
+    },
+    {
+      "id": "infer_cl",
+      "order": 4,
+      "title": "MuJoCo 闭环推理",
+      "subtitle": "ChunkStudent closed-loop + mp4",
+      "script": "tools/eval/run_830_walk_student_cl_mujoco_viz.sh",
+      "script_local": "phi0_pipeline/tools/eval/run_830_walk_student_cl_mujoco_viz.sh",
+      "depends_on": ["train_e10"],
+      "pre_setup": "examples/830demo_skill1/valid_hand_ep0_setup.sh",
+      "env": {
+        "STUDENT_CKPT": { "label": "Student checkpoint", "required": true },
+        "REF_ROOT": { "label": "Unified 数据集", "from_stage": "pack.WS_LINK" },
+        "EP": { "label": "Episode 索引", "default": "0", "type": "number" },
+        "HORIZON": { "label": "Horizon", "default": "32", "type": "number" },
+        "TAG": { "label": "实验 tag", "default": "830demo_skill1_cl_ep${EP}_${STAMP}" },
+        "OUT": { "label": "输出目录", "default": "/mnt/data2/wpy/workspace/Phi_0_wpy/experiments/${TAG}" },
+        "CUDA_VISIBLE_DEVICES": { "label": "GPU", "default": "4" },
+        "PHI0_PY": { "label": "Python 解释器", "default": "/mnt/data3/wpy/conda-envs/Phi-0-wbc-wpy/bin/python" },
+        "VALID_HAND_ROOT": { "label": "Valid hand 根目录", "default": "/tmp/830demo_skill1_valid_hand_ep0" },
+        "DEPLOY_POLICY_DIR": { "label": "Deploy", "default": "sonic_v1_1" },
+        "PHI0_HAND_MODE": { "label": "手型", "default": "dex3" },
+        "PHI0_CL_VLM_SOURCE": { "label": "CL VLM 来源", "default": "frame_cache" },
+        "PHI0_CL_HAND_OBS": { "label": "CL 手观测", "default": "commanded" }
+      },
+      "outputs": [
+        "${OUT}/student_sonic_dex3_cl.mp4",
+        "${OUT}/logs/mujoco_cl.log"
+      ],
+      "fixed_flags": {
+        "PHI0_USE_VLM_FRAME_LATENT_CACHE": "1",
+        "PHI0_VLM_FRAME_CACHE_SKIP_VIDEO": "1",
+        "PHI0_ADALN_ZERO_VISION": "1",
+        "PHI0_VLM_ATTN": "flash_attention_2",
+        "PHI0_ALLOW_SDPA_FALLBACK": "0",
+        "PHI0_NEWTON_REVO2": "0"
+      }
+    }
+  ],
+  "reference_run": {
+    "stamp": "20260901_093936",
+    "pack_log": "/mnt/data2/wpy/workspace/logs/830demo_skill1_pack_cache_20260901_093936",
+    "vlm_cache_log": "/mnt/data2/wpy/workspace/logs/830demo_skill1_vlm_cache_resume2_20260901_093936",
+    "train_out": "/mnt/data3/wpy/830demo_skill1_walk_vlm_cache_h32_b32_ddp8_e10_20260901_093936",
+    "train_steps": 15290,
+    "resume50k_out": "/mnt/data3/wpy/830demo_skill1_walk_vlm_cache_h32_b32_ddp8_resume50k_20260901_105405",
+    "infer_tag": "830demo_skill1_cl_ep0_s65290_20260901_223208"
+  }
+}
